@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// H map[string]interface{}
 type H map[string]interface{}
 
 // IRouter defines all router handle interface includes single and group router.

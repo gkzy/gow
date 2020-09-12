@@ -10,10 +10,13 @@ import (
 	"github.com/mattn/go-isatty"
 )
 
-var DefaultWriter io.Writer = os.Stdout
+var (
+	// DefaultWriter default io writer
+	DefaultWriter io.Writer = os.Stdout
 
-// DefaultErrorWriter is the default io.Writer used by Gin to debug errors
-var DefaultErrorWriter io.Writer = os.Stderr
+	// DefaultErrorWriter default error writer
+	DefaultErrorWriter io.Writer = os.Stderr
+)
 
 type consoleColorModeValue int
 

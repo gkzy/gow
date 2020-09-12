@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/gkzy/gow/render"
 	"io"
 	"io/ioutil"
 	"math"
@@ -17,6 +16,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gkzy/gow/render"
 )
 
 const (
@@ -33,6 +34,7 @@ const (
 	MIMEYAML              = "application/x-yaml"
 )
 
+// Context gow context
 type Context struct {
 	writermem responseWriter
 	Request   *http.Request
@@ -125,7 +127,7 @@ func (c *Context) IsAborted() bool {
 	return c.index >= abortIndex
 }
 
-// Abort
+// Abort abort handler
 func (c *Context) Abort() {
 	c.index = abortIndex
 }
@@ -200,7 +202,7 @@ func (c *Context) Query(key string) string {
 	return c.Request.URL.Query().Get(key)
 }
 
-// Form
+// Form return request.FormValue key
 func (c *Context) Form(key string) string {
 	return c.Request.FormValue(key)
 }
@@ -281,7 +283,7 @@ func (c *Context) GetUint8(key string, def ...uint8) (uint8, error) {
 	return uint8(i64), err
 }
 
-//GetInt16 GetInt16
+// GetInt16 GetInt16
 //	-32768~32767
 func (c *Context) GetInt16(key string, def ...int16) (int16, error) {
 	v := c.formValue(key)
@@ -292,7 +294,7 @@ func (c *Context) GetInt16(key string, def ...int16) (int16, error) {
 	return int16(i64), err
 }
 
-//GetUint8 GetUint8
+// GetUint16 GetUint16
 //	0~65535
 func (c *Context) GetUint16(key string, def ...uint16) (uint16, error) {
 	v := c.formValue(key)
@@ -314,7 +316,7 @@ func (c *Context) GetInt32(key string, def ...int32) (int32, error) {
 	return int32(i64), err
 }
 
-//GetUint32 GetUint32
+// GetUint32 GetUint32
 //	0~4294967295
 func (c *Context) GetUint32(key string, def ...uint32) (uint32, error) {
 	v := c.formValue(key)
@@ -325,7 +327,7 @@ func (c *Context) GetUint32(key string, def ...uint32) (uint32, error) {
 	return uint32(i64), err
 }
 
-//GetInt64 GetInt64
+// GetInt64 GetInt64
 //	-9223372036854775808~9223372036854775807
 func (c *Context) GetInt64(key string, def ...int64) (int64, error) {
 	v := c.formValue(key)
@@ -335,7 +337,7 @@ func (c *Context) GetInt64(key string, def ...int64) (int64, error) {
 	return strconv.ParseInt(v, 10, 64)
 }
 
-//GetUint64 GetUint64
+// GetUint64 GetUint64
 //	0~18446744073709551615
 func (c *Context) GetUint64(key string, def ...uint64) (uint64, error) {
 	v := c.formValue(key)
@@ -346,7 +348,7 @@ func (c *Context) GetUint64(key string, def ...uint64) (uint64, error) {
 	return uint64(i64), err
 }
 
-//GetInt64 GetInt64
+// GetFloat64 GetFloat64
 func (c *Context) GetFloat64(key string, def ...float64) (float64, error) {
 	v := c.formValue(key)
 	if len(v) == 0 && len(def) > 0 {
@@ -368,7 +370,7 @@ func (c *Context) GetBool(key string, def ...bool) (bool, error) {
 /******** UPLOAD********/
 /************************************/
 
-// // GetFile get single file from request
+// GetFile get single file from request
 func (c *Context) GetFile(key string) (multipart.File, *multipart.FileHeader, error) {
 	if c.Request.MultipartForm == nil {
 		if err := c.Request.ParseMultipartForm(c.engine.MaxMultipartMemory); err != nil {
@@ -408,7 +410,7 @@ func (c *Context) SaveToFile(fromFile, toFile string) error {
 /******** METADATA MANAGEMENT********/
 /************************************/
 
-// Set is used to store a new key/value pair exclusively for this context.
+// SetKey is used to store a new key/value pair exclusively for this context.
 // It also lazy initializes  c.Keys if it was not used previously.
 func (c *Context) SetKey(key string, value interface{}) {
 	c.mu.Lock()
@@ -420,7 +422,7 @@ func (c *Context) SetKey(key string, value interface{}) {
 	c.mu.Unlock()
 }
 
-// Get returns the value for the given key, ie: (value, true).
+// GetKey returns the value for the given key, ie: (value, true).
 // If the value does not exists it returns (nil, false)
 func (c *Context) GetKey(key string) (value interface{}, exists bool) {
 	c.mu.RLock()
@@ -437,7 +439,7 @@ func (c *Context) MustGet(key string) interface{} {
 	panic("Key \"" + key + "\" does not exist")
 }
 
-// GetString returns the value associated with the key as a string.
+// KeyString returns the value associated with the key as a string.
 func (c *Context) KeyString(key string) (s string) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		s, _ = val.(string)
@@ -445,7 +447,7 @@ func (c *Context) KeyString(key string) (s string) {
 	return
 }
 
-// GetBool returns the value associated with the key as a boolean.
+// KeyBool returns the value associated with the key as a boolean.
 func (c *Context) KeyBool(key string) (b bool) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		b, _ = val.(bool)
@@ -453,7 +455,7 @@ func (c *Context) KeyBool(key string) (b bool) {
 	return
 }
 
-// GetInt returns the value associated with the key as an integer.
+// KeyInt returns the value associated with the key as an integer.
 func (c *Context) KeyInt(key string) (i int) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		i, _ = val.(int)
@@ -461,7 +463,7 @@ func (c *Context) KeyInt(key string) (i int) {
 	return
 }
 
-// GetInt64 returns the value associated with the key as an integer.
+// KeyInt64 returns the value associated with the key as an integer.
 func (c *Context) KeyInt64(key string) (i64 int64) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		i64, _ = val.(int64)
@@ -469,7 +471,7 @@ func (c *Context) KeyInt64(key string) (i64 int64) {
 	return
 }
 
-// GetUint returns the value associated with the key as an unsigned integer.
+// KeyUint returns the value associated with the key as an unsigned integer.
 func (c *Context) KeyUint(key string) (ui uint) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		ui, _ = val.(uint)
@@ -477,7 +479,7 @@ func (c *Context) KeyUint(key string) (ui uint) {
 	return
 }
 
-// GetUint64 returns the value associated with the key as an unsigned integer.
+// KeyUint64 returns the value associated with the key as an unsigned integer.
 func (c *Context) KeyUint64(key string) (ui64 uint64) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		ui64, _ = val.(uint64)
@@ -485,7 +487,7 @@ func (c *Context) KeyUint64(key string) (ui64 uint64) {
 	return
 }
 
-// GetFloat64 returns the value associated with the key as a float64.
+// KeyFloat64 returns the value associated with the key as a float64.
 func (c *Context) KeyFloat64(key string) (f64 float64) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		f64, _ = val.(float64)
@@ -493,7 +495,7 @@ func (c *Context) KeyFloat64(key string) (f64 float64) {
 	return
 }
 
-// GetTime returns the value associated with the key as time.
+// KeyTime returns the value associated with the key as time.
 func (c *Context) KeyTime(key string) (t time.Time) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		t, _ = val.(time.Time)
@@ -501,7 +503,7 @@ func (c *Context) KeyTime(key string) (t time.Time) {
 	return
 }
 
-// GetDuration returns the value associated with the key as a duration.
+// KeyDuration returns the value associated with the key as a duration.
 func (c *Context) KeyDuration(key string) (d time.Duration) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		d, _ = val.(time.Duration)
@@ -509,7 +511,7 @@ func (c *Context) KeyDuration(key string) (d time.Duration) {
 	return
 }
 
-// GetStringSlice returns the value associated with the key as a slice of strings.
+// KeyStringSlice returns the value associated with the key as a slice of strings.
 func (c *Context) KeyStringSlice(key string) (ss []string) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		ss, _ = val.([]string)
@@ -517,7 +519,7 @@ func (c *Context) KeyStringSlice(key string) (ss []string) {
 	return
 }
 
-// GetStringMap returns the value associated with the key as a map of interfaces.
+// KeyStringMap returns the value associated with the key as a map of interfaces.
 func (c *Context) KeyStringMap(key string) (sm map[string]interface{}) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		sm, _ = val.(map[string]interface{})
@@ -525,7 +527,7 @@ func (c *Context) KeyStringMap(key string) (sm map[string]interface{}) {
 	return
 }
 
-// GetStringMapString returns the value associated with the key as a map of strings.
+// KeyStringMapString returns the value associated with the key as a map of strings.
 func (c *Context) KeyStringMapString(key string) (sms map[string]string) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		sms, _ = val.(map[string]string)
@@ -533,7 +535,7 @@ func (c *Context) KeyStringMapString(key string) (sms map[string]string) {
 	return
 }
 
-// GetStringMapStringSlice returns the value associated with the key as a map to a slice of strings.
+// KeyStringMapStringSlice returns the value associated with the key as a map to a slice of strings.
 func (c *Context) KeyStringMapStringSlice(key string) (smss map[string][]string) {
 	if val, ok := c.GetKey(key); ok && val != nil {
 		smss, _ = val.(map[string][]string)
@@ -690,7 +692,7 @@ func (c *Context) JSON(data interface{}) {
 	c.ServerJSON(http.StatusOK, data)
 }
 
-//  ClientIP get client ip address
+// ClientIP get client ip address
 func (c *Context) ClientIP() string {
 	if c.engine.ForwardedByClientIP {
 		clientIP := c.GetHeader("X-Forwarded-For")

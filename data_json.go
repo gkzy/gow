@@ -14,12 +14,13 @@ type DataResponse struct {
 	Body  *Body  `json:"body"`
 }
 
+// Body response body
 type Body struct {
 	Pager *Pager      `json:"pager"`
 	Data  interface{} `json:"data"`
 }
 
-// Pager
+// Pager pager struct
 type Pager struct {
 	Page      int64 `json:"page"`
 	Limit     int64 `json:"limit"`

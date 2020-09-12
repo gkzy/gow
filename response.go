@@ -12,7 +12,7 @@ const (
 	defaultStatus = http.StatusOK
 )
 
-// ResponseWriter ...
+// ResponseWriter interface
 type ResponseWriter interface {
 	http.ResponseWriter
 	http.Hijacker
@@ -39,6 +39,7 @@ type ResponseWriter interface {
 	Pusher() http.Pusher
 }
 
+// responseWriter
 type responseWriter struct {
 	http.ResponseWriter
 	size   int
@@ -62,6 +63,7 @@ func (w *responseWriter) WriteHeader(code int) {
 	}
 }
 
+// WriteHeaderNow WriteHeaderNow
 func (w *responseWriter) WriteHeaderNow() {
 	if !w.Written() {
 		w.size = 0
