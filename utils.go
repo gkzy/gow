@@ -62,7 +62,7 @@ func BytesToString(b []byte) string {
 //	return func(c *Context) {
 //		obj := reflect.New(typ).Interface()
 //		if c.Bind(obj) == nil {
-//			c.Set(BindKey, obj)
+//			c。S(BindKey, obj)
 //		}
 //	}
 //}

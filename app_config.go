@@ -12,7 +12,7 @@ const (
 	defaultProdConfig = "conf/prod.app.conf"
 )
 
-// AppConfig gku app 统一配置入口
+// AppConfig gow app 统一配置入口
 //		可以通过AppConfig完成统一的app基础配置
 type AppConfig struct {
 	AppName       string //应用名称
@@ -26,6 +26,7 @@ type AppConfig struct {
 }
 
 // GetAppConfig 获取配置文件中的信息
+//	使用环境亦是：GOW_RUN_MODE
 //  默认使用conf/app.conf配置文件
 //  当环境变量 APP_RUN_MODE ="prod"时，使用 conf/prod.app.conf
 //  当环境变量 APP_RUN_MODE ="dev"时，使用 conf/dev.app.conf
@@ -35,7 +36,6 @@ func GetAppConfig() *AppConfig {
 		fileName string
 	)
 	runMode := os.Getenv("GOW_RUN_MODE")
-
 	switch runMode {
 	case devMode:
 		fileName = defaultDevConfig
@@ -51,7 +51,7 @@ func GetAppConfig() *AppConfig {
 	config.InitLoad(fileName)
 
 	return &AppConfig{
-		AppName:       config.DefaultString("app_name", "gku"),
+		AppName:       config.DefaultString("app_name", "gow"),
 		RunMode:       config.DefaultString("run_mode", "dev"),
 		HTTPAddr:      config.DefaultString("http_addr", ":8080"),
 		AutoRender:    config.DefaultBool("auto_render", false),

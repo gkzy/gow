@@ -3,7 +3,7 @@ package oss
 import (
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/gkzy/gku/lib/util"
+	"github.com/gkzy/gow/lib/util"
 	"io"
 	"net/http"
 	"time"

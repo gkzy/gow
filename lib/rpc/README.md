@@ -1,4 +1,4 @@
-# gitub.com/gkzy/gku/lib/rpc
+# gitub.com/gkzy/gow/lib/rpc
 
 ### server 
 

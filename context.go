@@ -3,7 +3,10 @@ package gow
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
+	"github.com/gkzy/gow/render"
+	"gopkg.in/yaml.v2"
 	"io"
 	"io/ioutil"
 	"math"
@@ -16,8 +19,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/gkzy/gow/render"
 )
 
 const (
@@ -73,6 +74,7 @@ type Context struct {
 	// the browser to send this cookie along with cross-site requests.
 	sameSite http.SameSite
 
+	//Pager
 	Pager *Pager
 }
 
@@ -670,12 +672,33 @@ func (c *Context) ServerString(code int, msg string) {
 	c.Writer.Write([]byte(msg))
 }
 
+// ServerYAML serializes the given struct as YAML into the response body.
+func (c *Context) ServerYAML(code int, data interface{}) {
+	if code < 0 {
+		code = http.StatusOK
+	}
+	c.Header("Content-Type", "application/x-yaml; charset=utf-8")
+	c.Status(code)
+
+	bytes, err := yaml.Marshal(data)
+	if err != nil {
+		c.Header("Content-Type", "")
+		c.ServerString(http.StatusServiceUnavailable, err.Error())
+	}
+	c.Writer.Write(bytes)
+}
+
+// YAML serializes the given struct as YAML into the response body
+func (c *Context) YAML(data interface{}) {
+	c.ServerYAML(http.StatusOK, data)
+}
+
 // ServerJSON serializes the given struct as JSON into the response body.
 func (c *Context) ServerJSON(code int, data interface{}) {
 	if code < 0 {
 		code = http.StatusOK
 	}
-	c.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+	c.Header("Content-Type", "application/json; charset=utf-8")
 	c.Status(code)
 	encoder := json.NewEncoder(c.Writer)
 	if c.engine.RunMode == devMode {
@@ -690,6 +713,25 @@ func (c *Context) ServerJSON(code int, data interface{}) {
 // JSON serializes the given struct as JSON into the response body
 func (c *Context) JSON(data interface{}) {
 	c.ServerJSON(http.StatusOK, data)
+}
+
+// ServerXML response xml
+func (c *Context) ServerXML(code int, data interface{}) {
+	if code < 0 {
+		code = http.StatusOK
+	}
+	c.Header("Content-Type", "application/xml; charset=utf-8")
+	c.Status(code)
+	encoder := xml.NewEncoder(c.Writer)
+	if err := encoder.Encode(data); err != nil {
+		c.Header("Content-Type", "")
+		c.ServerString(http.StatusServiceUnavailable, err.Error())
+	}
+}
+
+// XML response xml doc
+func (c *Context) XML(data interface{}) {
+	c.ServerXML(http.StatusOK, data)
 }
 
 // ClientIP get client ip address

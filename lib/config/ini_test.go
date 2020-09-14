@@ -7,7 +7,7 @@ import (
 )
 
 func TestINI_GetKey(t *testing.T) {
-	fmt.Println(DefaultString("app_name", "gku"))
+	fmt.Println(DefaultString("app_name", "gow"))
 	fmt.Println(DefaultString("app_mode", "dev"))
 	fmt.Println(DefaultString("http_port", "8080"))
 

@@ -10,7 +10,7 @@ package rpc
 
 import (
 	"fmt"
-	"github.com/gkzy/gku/lib/logy"
+	"github.com/gkzy/gow/lib/logy"
 	"google.golang.org/grpc"
 	"net"
 )

@@ -1,4 +1,4 @@
-# github.com/gkzy/gku/lib/cache 
+# github.com/gkzy/gow/lib/cache 
 
 > go mem cache 封装
 
@@ -12,7 +12,7 @@ github.com/patrickmn/go-cache
 ### 引用 
 
 ```go
-import "github.com/gkzy/gku/lib/cache"
+import "github.com/gkzy/gow/lib/cache"
 ```
 
 ### 使用

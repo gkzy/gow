@@ -4,7 +4,7 @@ import (
 	"crypto"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/gkzy/gku/lib/pay/alipay/encoding"
+	"github.com/gkzy/gow/lib/pay/alipay/encoding"
 	"io"
 	"io/ioutil"
 	"net/http"

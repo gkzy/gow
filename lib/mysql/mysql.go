@@ -30,7 +30,7 @@ package mysql
 
 import (
 	"fmt"
-	"github.com/gkzy/gku/lib/logy"
+	"github.com/gkzy/gow/lib/logy"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"time"

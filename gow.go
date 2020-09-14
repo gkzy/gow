@@ -150,7 +150,7 @@ func (engine *Engine) SetAppConfig(app *AppConfig) {
 		engine.viewsPath = app.Views
 		engine.delims = render.Delims{Left: app.TemplateLeft, Right: app.TemplateRight}
 		engine.AutoRender = app.AutoRender
-		engine.httpAddr = app.HttpAddr
+		engine.httpAddr = app.HTTPAddr
 		engine.sessionOn = app.SessionOn
 	}
 }
@@ -179,6 +179,19 @@ func (engine *Engine) SetView(path ...string) {
 		dir = path[0]
 	}
 	engine.viewsPath = dir
+}
+
+// SetSessionOn SetSessionOn
+func (engine *Engine) SetSessionOn(on bool) {
+	engine.sessionOn = on
+}
+
+// RoutesMap get all router map
+func (engine *Engine) RouterMap() (routes RoutesInfo) {
+	for _, tree := range engine.trees {
+		routes = iterate("", tree.method, routes, tree.root)
+	}
+	return routes
 }
 
 // SecureJsonPrefix sets the secureJSONPrefix used in Context.SecureJSON.
@@ -280,6 +293,18 @@ func (engine *Engine) Run(args ...interface{}) (err error) {
 		err = render.AddViewPath(engine.viewsPath)
 	}
 
+	//是否打开session
+	if engine.sessionOn {
+		InitSession()
+		engine.Use(Session())
+	}
+
+	if engine.RunMode == devMode {
+		fmt.Println(logo)
+		debugPrint("package: %s", pkg)
+		debugPrint("website: %s", site)
+	}
+
 	address := engine.getAddress(args...)
 	debugPrint("Listening and serving HTTP on http://%s\n", address)
 	err = http.ListenAndServe(address, engine)
@@ -295,6 +320,19 @@ func (engine *Engine) RunTLS(certFile, keyFile string, args ...interface{}) (err
 	if engine.AutoRender {
 		err = render.AddViewPath(engine.viewsPath)
 	}
+
+	//是否打开session
+	if engine.sessionOn {
+		InitSession()
+		engine.Use(Session())
+	}
+
+	if engine.RunMode == devMode {
+		fmt.Println(logo)
+		debugPrint("package: %s", pkg)
+		debugPrint("website: %s", site)
+	}
+
 	address := engine.getAddress(args...)
 	debugPrint("Listening and serving HTTPS on %s\n", address)
 	err = http.ListenAndServeTLS(address, certFile, keyFile, engine)

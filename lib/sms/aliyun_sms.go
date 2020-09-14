@@ -13,8 +13,8 @@ package sms
 import (
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/dysmsapi"
-	"github.com/gkzy/gku/lib/logy"
-	"github.com/gkzy/gku/lib/util"
+	"github.com/gkzy/gow/lib/logy"
+	"github.com/gkzy/gow/lib/util"
 )
 
 //AliSmsClient

@@ -1,1 +1,1 @@
-# github.com/gkzy/gku/lib/logy
+# github.com/gkzy/gow/lib/logy

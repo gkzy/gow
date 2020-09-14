@@ -1,4 +1,4 @@
-# github.com/gkzy/gku/lib/mysql
+# github.com/gkzy/gow/lib/mysql
 
 
 ### 使用方法：

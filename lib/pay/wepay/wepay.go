@@ -9,7 +9,7 @@ package wepay
 
 import (
 	"fmt"
-	"github.com/gkzy/gku/lib/util"
+	"github.com/gkzy/gow/lib/util"
 
 	"net/http"
 	"strings"

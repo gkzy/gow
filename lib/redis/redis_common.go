@@ -2,7 +2,7 @@ package redis
 
 import (
 	"fmt"
-	"github.com/gkzy/gku/lib/logy"
+	"github.com/gkzy/gow/lib/logy"
 	"github.com/gomodule/redigo/redis"
 )
 

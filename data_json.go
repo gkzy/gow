@@ -24,7 +24,7 @@ type Body struct {
 type Pager struct {
 	Page      int64 `json:"page"`
 	Limit     int64 `json:"limit"`
-	Offset    int64 `json:"offset"`
+	Offset    int64 `json:"-"`
 	Count     int64 `json:"count"`
 	PageCount int64 `json:"page_count"`
 }
