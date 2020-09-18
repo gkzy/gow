@@ -37,25 +37,23 @@ import (
 
 //MessageHandler MessageHandler
 type MessageHandler struct {
-	msgChan      chan *gnsq.Message
-	stop         bool
-	consumerAddr string
-	consumerPort int
-	Channel      string
+	msgChan   chan *gnsq.Message
+	stop      bool
+	nsqServer string
+	Channel   string
 }
 
-//NewMessageHandler
-func NewMessageHandler(consumerAddr string, consumerPort int, channel string) (mh *MessageHandler, err error) {
-	if consumerAddr == "" || consumerPort == 0 {
-		err = fmt.Errorf("[NSQ] need consumerAddr and consumerPort")
+// NewMessageHandler return new MessageHandler
+func NewMessageHandler(nsqServer string, channel string) (mh *MessageHandler, err error) {
+	if nsqServer == "" {
+		err = fmt.Errorf("[NSQ] need nsq server")
 		return
 	}
 	mh = &MessageHandler{
-		msgChan:      make(chan *gnsq.Message, 1024),
-		stop:         false,
-		consumerAddr: consumerAddr,
-		consumerPort: consumerPort,
-		Channel:      channel,
+		msgChan:   make(chan *gnsq.Message, 1024),
+		stop:      false,
+		nsqServer: nsqServer,
+		Channel:   channel,
 	}
 
 	return
@@ -70,7 +68,7 @@ func (m *MessageHandler) Registry(topic string, ch chan []byte) {
 	}
 	consumer.SetLogger(nil, 0)
 	consumer.AddHandler(gnsq.HandlerFunc(m.handlerMessage))
-	err = consumer.ConnectToNSQLookupd(fmt.Sprintf("%s:%d", m.consumerAddr, m.consumerPort))
+	err = consumer.ConnectToNSQLookupd(m.nsqServer)
 	if err != nil {
 		panic(err)
 	}

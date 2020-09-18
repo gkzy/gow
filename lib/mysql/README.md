@@ -8,7 +8,7 @@
 ```go
 // 初始化链接
 func init(){
-    config:=&DBConfig{go
+    config:=&DBConfig{}
     mysql.InitDefaultDB(config)
 }
 

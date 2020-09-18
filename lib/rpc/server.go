@@ -25,7 +25,7 @@ type Server struct {
 //NewServer init一个新的服务
 func NewServer(port int) (server *Server, err error) {
 	if port == 0 {
-		err = fmt.Errorf("[RPC]init failed：need port")
+		err = fmt.Errorf("[RPC] init failed：need port")
 		return
 	}
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -49,5 +49,5 @@ func (m *Server) Run() {
 			logy.Error("[RPC] failed to listen:%v", err)
 		}
 	}()
-	logy.Info(fmt.Sprintf("[RPC] server on: %v", m.Port))
+	logy.Info(fmt.Sprintf("[RPC] Listening and serving TCP on %v", m.Port))
 }

@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"math"
 	"mime/multipart"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -122,6 +121,12 @@ func (c *Context) Next() {
 		c.handlers[c.index](c)
 		c.index++
 	}
+}
+
+// IsProd return bool
+//	是否运行在生产环境下
+func (c *Context) IsProd() bool {
+	return c.engine.RunMode == prodMode
 }
 
 // IsAborted returns true if the current context was aborted.
@@ -734,30 +739,37 @@ func (c *Context) XML(data interface{}) {
 	c.ServerXML(http.StatusOK, data)
 }
 
+// GetIP return k8s Cluster ip
+//	if ip=="" return "10.10.10.2"
+func (c *Context) GetIP() (ip string) {
+	//H5服务器端返传递的IP
+	ip = c.GetHeader("ip")
+	if ip == "" {
+		ip = c.GetHeader("X-Original-Forwarded-For")
+	}
+	if ip == "" {
+		ip = c.GetHeader("Remote-Host")
+	}
+	if ip == "" {
+		ip = c.GetHeader("X-Real-IP")
+	}
+	if ip == "" {
+		ip = c.ClientIP()
+	}
+	if ip == "" {
+		ip = "10.10.10.2"
+	}
+	return ip
+}
+
 // ClientIP get client ip address
-func (c *Context) ClientIP() string {
-	if c.engine.ForwardedByClientIP {
-		clientIP := c.GetHeader("X-Forwarded-For")
-		clientIP = strings.TrimSpace(strings.Split(clientIP, ",")[0])
-		if clientIP == "" {
-			clientIP = strings.TrimSpace(c.GetHeader("X-Real-Ip"))
-		}
-		if clientIP != "" {
-			return clientIP
-		}
+func (c *Context) ClientIP() (ip string) {
+	addr := c.Request.RemoteAddr
+	str := strings.Split(addr, ":")
+	if len(str) > 1 {
+		ip = str[0]
 	}
-
-	if c.engine.AppEngine {
-		if addr := c.GetHeader("X-Appengine-Remote-Addr"); addr != "" {
-			return addr
-		}
-	}
-
-	if ip, _, err := net.SplitHostPort(strings.TrimSpace(c.Request.RemoteAddr)); err == nil {
-		return ip
-	}
-
-	return ""
+	return
 }
 
 // Status sets the HTTP response code.

@@ -11,7 +11,7 @@ func TestINI_GetKey(t *testing.T) {
 	fmt.Println(DefaultString("app_mode", "dev"))
 	fmt.Println(DefaultString("http_port", "8080"))
 
-	fmt.Println(DefaultString("gkzy-user::user", "zituocn"))
+	fmt.Println(GetString("gkzy-user::user"))
 
 	keys := Keys("gkzy-user")
 	fmt.Println(strings.Join(keys, ","))

@@ -25,13 +25,13 @@ type Producer struct {
 }
 
 //NewProducer init
-func NewProducer(serverAddr string, serverPort int) (producer *Producer, err error) {
-	if serverAddr == "" || serverPort == 0 {
-		err = fmt.Errorf("[NSQ]init failed：need serverAddr and serverPort")
+func NewProducer(addr string) (producer *Producer, err error) {
+	if addr == "" {
+		err = fmt.Errorf("[NSQ]init failed：need nsq server addr")
 		return
 	}
 	config := gnsq.NewConfig()
-	p, err := gnsq.NewProducer(fmt.Sprintf("%s:%d", serverAddr, serverPort), config)
+	p, err := gnsq.NewProducer(addr, config)
 	if err != nil {
 		return
 	}
@@ -46,7 +46,7 @@ func NewProducer(serverAddr string, serverPort int) (producer *Producer, err err
 //Publish publish
 func (m *Producer) Publish(topic string, data []byte) (err error) {
 	if m.P == nil {
-		err = fmt.Errorf("[NSQ]init failed:%v", err)
+		err = fmt.Errorf("[NSQ] init failed:%v", err)
 	}
 	err = m.P.Publish(topic, data)
 	defer m.P.Stop()

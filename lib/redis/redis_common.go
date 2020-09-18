@@ -2,7 +2,6 @@ package redis
 
 import (
 	"fmt"
-	"github.com/gkzy/gow/lib/logy"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -10,20 +9,23 @@ type RDSCommon struct {
 	client *redis.Pool
 }
 
-// GetRDSCommon
+// GetRDSCommon return redis func
 func GetRDSCommon() *RDSCommon {
 	if redisClient == nil {
-		logy.Panic("[redis]连接未初始化")
+		panic("[RDS] 连接未初始化")
 	}
 	if redisClient.Get() == nil {
-		logy.Panic("[redis]连接redis失败")
+		panic("[RDS] 连接redis失败")
 	}
 	return &RDSCommon{
 		client: redisClient,
 	}
 }
 
-//==============key操作========================
+/************************************/
+/********     REDIS key 	 ********/
+/************************************/
+
 // GetTTL GetTTL
 func (m *RDSCommon) GetTTL(key string) (ttl int64, err error) {
 	rc := m.client.Get()
@@ -83,7 +85,16 @@ func (m *RDSCommon) Exists(key string) (bool, error) {
 	return redis.Bool(rc.Do("EXISTS", key))
 }
 
-//=============string操作==================
+// GetSet 设置指定 key 的值，并返回 key 的旧值。
+func (m *RDSCommon) GetSet(key string, v interface{}) (interface{}, error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	return rc.Do("GETSET", key, v)
+}
+
+/************************************/
+/********     REDIS string 	 ********/
+/************************************/
 
 //GetString 取 string
 func (m *RDSCommon) GetString(key string) (v string, err error) {
@@ -101,7 +112,7 @@ func (m *RDSCommon) GetInt64(key string) (v int64, err error) {
 	return
 }
 
-//S etString 设置值
+// SetString 设置key的值为v
 func (m *RDSCommon) SetString(key string, v interface{}) (ok bool, err error) {
 	rc := m.client.Get()
 	defer rc.Close()
@@ -114,7 +125,7 @@ func (m *RDSCommon) SetString(key string, v interface{}) (ok bool, err error) {
 
 //SetEx 写入string，同时设置过期时间
 //		SetEx(key,"value",24*time.Hour)
-func (m *RDSCommon) SetEx(key string, v interface{}, ex int64) (ok bool, err error) {
+func (m *RDSCommon) SetEX(key string, v interface{}, ex int64) (ok bool, err error) {
 	rc := m.client.Get()
 	defer rc.Close()
 	result, err := redis.String(rc.Do("SETEX", redis.Args{}.Add(key).Add(ex).Add(v)...))
@@ -124,7 +135,16 @@ func (m *RDSCommon) SetEx(key string, v interface{}, ex int64) (ok bool, err err
 	return true, err
 }
 
-//===============hash操作=============
+// SETNX key不存时，设置key的值为v
+func (m *RDSCommon) SETNX(key string, v interface{}) (bool, error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	return redis.Bool(rc.Do("SETNX", redis.Args{}.Add(key).AddFlat(v)...))
+}
+
+/************************************/
+/********     REDIS hash 	 ********/
+/************************************/
 
 //SetHashField 设置某个field值
 func (m *RDSCommon) SetHashField(key string, field, v interface{}) (int64, error) {
@@ -182,13 +202,113 @@ func (m *RDSCommon) HashFieldExists(key, field string) (bool, error) {
 	return redis.Bool(rc.Do("HEXISTS", redis.Args{}.Add(key).Add(field)...))
 }
 
-//================list======================
+/************************************/
+/********     REDIS list 	 ********/
+/************************************/
 
-//================zset======================
+/************************************/
+/********     REDIS ZSET 	 ********/
+/************************************/
 
-//================set======================
+// SetZSet 添加一个新的ZSet
+func (m *RDSCommon) SetZSet(key string, mp map[float64]interface{}) (err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	_, err = redis.Int64(rc.Do("ZADD", redis.Args{}.Add(key).AddFlat(mp)...))
+	return
+}
 
-//================bit======================
+// AddZSet 添加单个ZST
+func (m *RDSCommon) AddZSet(key string, score float64, value []byte) (err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	_, err = rc.Do("ZADD", key, score, value)
+	return
+}
+
+// getZSetWithScore
+func (m *RDSCommon) GetZSetWithScore(key string, offset, limit int) (values []interface{}, err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	values, err = redis.Values(rc.Do("ZRANGE", key, offset, offset+limit-1, "WITHSCORES"))
+	return
+}
+
+// GetZSetWithScoreToString ZSET to []string
+func (m *RDSCommon) GetZSetWithScoreToStrings(key string, offset, limit int) (ss []string, err error) {
+	values, err := m.GetZSetWithScore(key, offset, limit)
+	if err != nil {
+		return
+	}
+	if err = redis.ScanSlice(values, &ss); err != nil {
+		return
+	}
+	return
+}
+
+// GetZSetWithScoreToInts ZSET to []int
+func (m *RDSCommon) GetZSetWithScoreToInts(key string, offset, limit int) (ii []int, err error) {
+	values, err := m.GetZSetWithScore(key, offset, limit)
+	if err != nil {
+		return
+	}
+	if err = redis.ScanSlice(values, &ii); err != nil {
+		return
+	}
+	return
+}
+
+// GetZSetWithScoreToInt64s ZSET to []int64
+func (m *RDSCommon) GetZSetWithScoreToInt64s(key string, offset, limit int) (ii []int64, err error) {
+	values, err := m.GetZSetWithScore(key, offset, limit)
+	if err != nil {
+		return
+	}
+	if err = redis.ScanSlice(values, &ii); err != nil {
+		return
+	}
+	return
+}
+
+// GetZSetCountByArea 获取指定区间min-max之间成员的数量
+func (m *RDSCommon) GetZSetCountByArea(key string, min, max int64) (count int64, err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	count, err = redis.Int64(rc.Do("ZCOUNT", key, min, max))
+	if err != nil {
+		return 0, err
+	}
+	return
+}
+
+// GetZSetCount 获取指定区间min-max之间成员的数量
+func (m *RDSCommon) GetZSetCount(key string) (count int64, err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	count, err = redis.Int64(rc.Do("ZCARD", key))
+	if err != nil {
+		return 0, err
+	}
+	return
+}
+
+// DelZSetMember 删除zset成员
+func (m *RDSCommon) DelZSetMember(key string, member interface{}) error {
+	rc := m.client.Get()
+	defer rc.Close()
+	_, err := rc.Do("ZREM", key, member)
+	return err
+}
+
+/************************************/
+/********     REDIS set 	 ********/
+/************************************/
+
+/************************************/
+/********     REDIS bit 	 ********/
+/************************************/
+
+// get bit
 func (m *RDSCommon) GetBit(key string, offset int64) (int, error) {
 	rc := m.client.Get()
 	defer rc.Close()

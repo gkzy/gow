@@ -306,7 +306,7 @@ func (engine *Engine) Run(args ...interface{}) (err error) {
 	}
 
 	address := engine.getAddress(args...)
-	debugPrint("Listening and serving HTTP on http://%s\n", address)
+	debugPrint("[%s] [%s] Listening and serving HTTP on http://%s\n", engine.AppName, engine.RunMode, address)
 	err = http.ListenAndServe(address, engine)
 	return
 }
@@ -334,7 +334,7 @@ func (engine *Engine) RunTLS(certFile, keyFile string, args ...interface{}) (err
 	}
 
 	address := engine.getAddress(args...)
-	debugPrint("Listening and serving HTTPS on %s\n", address)
+	debugPrint("[%s] [%s] Listening and serving HTTPS on https://%s\n", engine.AppName, engine.RunMode, address)
 	err = http.ListenAndServeTLS(address, certFile, keyFile, engine)
 	return
 }

@@ -46,11 +46,11 @@ var (
 //InitRDSClient init config
 func InitRDSClient(rdc *RDSConfig) (err error) {
 	if rdc == nil {
-		err = fmt.Errorf("没有需要init的redis")
+		err = fmt.Errorf("[RDS] 没有需要init的redis")
 		return
 	}
 	if rdc.Host == "" || rdc.Port == 0 {
-		err = fmt.Errorf("[RDS]没有配置主机或端口")
+		err = fmt.Errorf("[RDS] 没有配置主机或端口")
 		return
 	}
 	redisClient = &redis.Pool{
@@ -59,19 +59,28 @@ func InitRDSClient(rdc *RDSConfig) (err error) {
 		IdleTimeout: 5 * time.Second,
 		Dial: func() (conn redis.Conn, err error) {
 			conn, err = redis.Dial("tcp", fmt.Sprintf("%s:%d", rdc.Host, rdc.Port))
-			if err != nil {
-				return
-			}
-			if len(rdc.Password) != 0 {
-				if _, err := conn.Do("AUTH", rdc.Password); err != nil {
+			if conn != nil {
+				if len(rdc.Password) != 0 {
+					if _, err := conn.Do("AUTH", rdc.Password); err != nil {
+						conn.Close()
+					}
+				}
+				if _, err := conn.Do("SELECT", rdc.DB); err != nil {
 					conn.Close()
 				}
-			}
-			if _, err := conn.Do("SELECT", rdc.DB); err != nil {
-				conn.Close()
 			}
 			return
 		},
 	}
+
+	//ping一次，检测可用性
+	rc := redisClient.Get()
+	defer rc.Close()
+	_, err = rc.Do("PING")
+	if err != nil {
+		err = fmt.Errorf("[RDS] redis 初始化失败 %v", err)
+		return
+	}
+
 	return
 }

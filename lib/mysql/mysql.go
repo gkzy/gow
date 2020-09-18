@@ -91,26 +91,26 @@ func newORM(db *DBConfig) {
 		err error
 	)
 	if db.User == "" || db.Password == "" || db.Host == "" || db.Port == 0 {
-		panic(fmt.Sprintf("[DB]-[%v]数据库配置信息获取失败", db.Name))
+		panic(fmt.Sprintf("[DB]-[%v] 数据库配置信息获取失败", db.Name))
 	}
 
 	str := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", db.User, db.Password, db.Host, db.Port, db.Name) + "?charset=utf8mb4&parseTime=true&loc=Local"
 	for orm, err = gorm.Open(dbType, str); err != nil; {
-		logy.Error(fmt.Sprintf("[DB]-[%v]连接异常:%v，正在重试: %v", db.Name, err, str))
+		logy.Error(fmt.Sprintf("[DB]-[%v] 连接异常:%v，正在重试: %v", db.Name, err, str))
 		time.Sleep(5 * time.Second)
 		orm, err = gorm.Open(dbType, str)
 	}
 	orm.LogMode(db.Debug)
 	orm.CommonDB()
 	dbs[db.Name] = orm
-	logy.Info(fmt.Sprintf("[DB]-[%v]连接成功:%v", db.Name, str))
+	logy.Info(fmt.Sprintf("[DB]-[%v] initialized successfully => %v", db.Name, str))
 }
 
 //GetORM GetORM
 func GetORM() *gorm.DB {
 	m, ok := dbs[defaultDBName]
 	if !ok {
-		logy.Panic("[DB]未init，请参照使用说明")
+		logy.Panic("[DB] 未init，请参照使用说明")
 	}
 	return m
 }
@@ -119,7 +119,7 @@ func GetORM() *gorm.DB {
 func GetORMByName(name string) *gorm.DB {
 	m, ok := dbs[name]
 	if !ok {
-		logy.Panic("[DB]未init，请参照使用说明")
+		logy.Panic("[DB] 未init，请参照使用说明")
 	}
 	return m
 }

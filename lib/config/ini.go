@@ -18,10 +18,13 @@ const (
 
 func init() {
 
-	var fileName string
+	var (
+		fileName string
+		err      error
+	)
 
 	//根据环境变量使用不同的conf文件
-	runMode := os.Getenv("APP_RUN_MODE")
+	runMode := os.Getenv("GOW_RUN_MODE")
 	if runMode == "" {
 		fileName = defaultConfig
 	}
@@ -37,7 +40,10 @@ func init() {
 		fileName = defaultConfig
 	}
 
-	ini.Load(fileName)
+	cfg, err = ini.Load(fileName)
+	if err != nil {
+		panic("Failed to read configuration file：" + fileName)
+	}
 
 }
 

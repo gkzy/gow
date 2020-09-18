@@ -16,16 +16,16 @@ type UpYunSmsClient struct {
 	Token string
 }
 
+// NewUpYunSmsClient 返回一个新的client
 func NewUpYunSmsClient(token string) *UpYunSmsClient {
 	return &UpYunSmsClient{
 		Token: token,
 	}
 }
 
-//SendSms 发送短信
-//templateId = 模板ID
-//vars = 模板变量  body.Vars = fmt.Sprintf("%v|%v|%v|%v", Datetime,"abc", "123, "456")
-func (m *UpYunSmsClient) SendSms(mobile string, templateId int64, vars string) (err error) {
+// SendVerifyCode 发送验证码短信
+//	templateId = 模板ID
+func (m *UpYunSmsClient) SendVerifyCode(mobile string, templateId int64, code string) (err error) {
 	if mobile == "" {
 		err = fmt.Errorf("手机号格式不正确")
 		return
@@ -33,7 +33,7 @@ func (m *UpYunSmsClient) SendSms(mobile string, templateId int64, vars string) (
 	body := new(UpYunSmsBody)
 	body.Mobile = mobile
 	body.TemplateID = templateId
-	body.Vars = vars
+	body.Vars = fmt.Sprintf("%v", code)
 	err = m.send(body)
 	if err != nil {
 		return err

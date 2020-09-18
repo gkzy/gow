@@ -17,14 +17,14 @@ import (
 	"github.com/gkzy/gow/lib/util"
 )
 
-//AliSmsClient
+// AliSmsClient
 type AliSmsClient struct {
 	AccessKeyID     string
 	AccessKeySecret string
 	HTTPDebugEnable bool
 }
 
-//NewAliSmsClient get aliyun sms client
+// NewAliSmsClient return AliSmsClient
 func NewAliSmsClient(accessKeyID, accessKeySecret string) *AliSmsClient {
 	return &AliSmsClient{
 		AccessKeyID:     accessKeyID,
@@ -33,7 +33,7 @@ func NewAliSmsClient(accessKeyID, accessKeySecret string) *AliSmsClient {
 	}
 }
 
-//SetDebug SetDebug
+// SetDebug SetDebug
 func (m *AliSmsClient) SetDebug(enabled bool) {
 	m.HTTPDebugEnable = enabled
 }
@@ -45,7 +45,7 @@ func (m *AliSmsClient) SendVerifyCode(sign, templateID, phone, code string) (err
 }
 
 //SendMarket 营销短信
-func (m *AliSmsClient) SendMarket(sign, templateId, phone string) (err error) {
+func (m *AliSmsClient) SendNotice(sign, templateId, phone string) (err error) {
 	return m.send(phone, sign, templateId, "")
 }
 
@@ -70,7 +70,7 @@ func (m *AliSmsClient) send(phoneNumbers, sign, templateId, templateParam string
 		return
 	}
 	if m.HTTPDebugEnable {
-		logy.Info("response:", response)
+		logy.Debug("response:", response)
 	}
 	if response.Message != "OK" && response.Code != "OK" {
 		err = fmt.Errorf("发送失败：%v", response.Message)
