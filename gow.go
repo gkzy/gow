@@ -137,14 +137,14 @@ func New() *Engine {
 // Default returns an Engine instance with the Logger and Recovery middleware already attached.
 func Default() *Engine {
 	engine := New()
-	engine.Use(Logger(), Recovery())
+	engine.Use(Logger(), Recovery(), Config())
 	return engine
 }
 
 // SetAppConfig 统一的配置入口
 func (engine *Engine) SetAppConfig(app *AppConfig) {
 	if app != nil {
-		debugPrint("[%s] Load the configuration using the SetAppConfig method", app.AppName)
+		debugPrint("[%s] Use the SetAppConfig method to load the global configuration", app.AppName)
 		engine.AppName = app.AppName
 		engine.RunMode = app.RunMode
 		engine.viewsPath = app.Views

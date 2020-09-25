@@ -44,17 +44,17 @@ func (m *WxAPI) UnifiedOrder(body string, outTradeNo string, totalFee int, openI
 	params.SetInt64("total_fee", int64(totalFee))
 	params.SetString("openid", openID)
 	params.SetString("trade_type", string(tradeType))
-	params.SetString("notify_url", m.Client.notifyURL)
+	params.SetString("notify_url", m.Client.NotifyURL)
 
 	//订单的有效期，开始和结束时间
 	now := time.Now()
 	params.SetString("time_start", util.TimeFormat(now, "YYYYMMDDHHmmss"))
-	params.SetString("time_expire", util.TimeFormat(now.Add(time.Minute*time.Duration(m.Client.endMinute)), "YYYYMMDDHHmmss"))
+	params.SetString("time_expire", util.TimeFormat(now.Add(time.Minute*time.Duration(m.Client.OrderTime)), "YYYYMMDDHHmmss"))
 
 	if clientIP != "" {
 		params.SetString("spbill_create_ip", clientIP)
 	} else if tradeType == TradeTypeNative {
-		params.SetString("spbill_create_ip", m.Client.serverIP) //服务器IP
+		params.SetString("spbill_create_ip", m.Client.ServerIP) //服务器IP
 	}
 	return m.Client.UnifiedOrder(params)
 }
@@ -78,8 +78,8 @@ func (m *WxAPI) AppTrade(body, outTradeNo string, totalFee int, clientIP string)
 	nonceStr := makeNonceStr(20)
 	pg := "Sign=WXPay"
 	p := make(Params)
-	p.SetString("appid", m.Client.appID)
-	p.SetString("partnerid", m.Client.mchID)
+	p.SetString("appid", m.Client.AppId)
+	p.SetString("partnerid", m.Client.MchId)
 	p.SetString("prepayid", prepayID)
 	p.SetString("package", pg)
 	p.SetString("noncestr", nonceStr)
@@ -88,8 +88,8 @@ func (m *WxAPI) AppTrade(body, outTradeNo string, totalFee int, clientIP string)
 	sign := m.Client.Sign(p)
 
 	ret = &AppPayResp{
-		AppID:     m.Client.appID,
-		PartnerID: m.Client.mchID,
+		AppID:     m.Client.AppId,
+		PartnerID: m.Client.MchId,
 		PrepayID:  prepayID,
 		Package:   pg,
 		NonceStr:  nonceStr,

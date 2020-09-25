@@ -7,11 +7,10 @@ import (
 
 // DataResponse data json response struct
 type DataResponse struct {
-	Code  int    `json:"code"`
-	Msg   string `json:"msg"`
-	STime string `json:"stime"`
-	Time  int    `json:"time"`
-	Body  *Body  `json:"body"`
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+	Time int    `json:"time"`
+	Body *Body  `json:"body"`
 }
 
 // Body response body
@@ -53,11 +52,11 @@ func DataPager() HandlerFunc {
 //	response format json
 func (c *Context) DataJSON(args ...interface{}) {
 	var (
-		err   error
-		pager *Pager
-		data  interface{}
-		msg   string
-		code  int
+		err    error
+		pager  *Pager
+		data   interface{}
+		msg    string
+		code   int
 	)
 	for _, v := range args {
 		switch vv := v.(type) {
@@ -91,11 +90,10 @@ func (c *Context) DataJSON(args ...interface{}) {
 	body.Data = data
 
 	resp := &DataResponse{
-		Code:  code,
-		Msg:   msg,
-		STime: time.Now().Format("2006-01-02 15:04:05"),
-		Time:  int(time.Now().Unix()),
-		Body:  body,
+		Code: code,
+		Msg:  msg,
+		Time: int(time.Now().Unix()),
+		Body: body,
 	}
 	c.JSON(&resp)
 	return

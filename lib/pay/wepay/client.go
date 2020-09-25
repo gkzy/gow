@@ -46,8 +46,8 @@ func (c *Client) SetSignType(signType string) {
 
 // fillRequestData 向 params 中添加 appid、mch_id、nonce_str、sign_type、sign
 func (c *Client) fillRequestData(params Params) Params {
-	params["appid"] = c.appID
-	params["mch_id"] = c.mchID
+	params["appid"] = c.AppId
+	params["mch_id"] = c.MchId
 	params["nonce_str"] = makeNonceStr(20)
 	params["sign_type"] = c.signType
 	params["sign"] = c.Sign(params)
@@ -77,7 +77,7 @@ func (c *Client) postWithCert(url string, params Params) (string, error) {
 	}
 
 	// 将pkcs12证书转成pem
-	cert := pkcs12ToPem(c.certData, c.mchID)
+	cert := pkcs12ToPem(c.certData, c.MchId)
 
 	config := &tls.Config{
 		Certificates: []tls.Certificate{cert},
@@ -141,7 +141,7 @@ func (c *Client) Sign(params Params) string {
 	}
 	// 加入apiKey作加密密钥
 	buf.WriteString(`key=`)
-	buf.WriteString(c.apiKey)
+	buf.WriteString(c.APIKey)
 
 	var (
 		dataMd5    []byte
@@ -158,7 +158,7 @@ func (c *Client) Sign(params Params) string {
 		dataMd5 = h.Sum(nil)
 		str = hex.EncodeToString(dataMd5)
 	case HMACSHA256:
-		h := hmac.New(sha256.New, []byte(c.apiKey))
+		h := hmac.New(sha256.New, []byte(c.APIKey))
 		h.Write(buf.Bytes())
 		dataSha256 = h.Sum(nil)
 		str = hex.EncodeToString(dataSha256[:])

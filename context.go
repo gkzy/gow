@@ -103,6 +103,11 @@ func (c *Context) Handler() HandlerFunc {
 	return c.handlers.Last()
 }
 
+// HandlerName last handler name
+func (c *Context) HandlerName() string {
+	return nameOfFunction(c.handlers.Last())
+}
+
 // FullPath returns a matched route full path. For not found routes
 // returns an empty string.
 //     router.GET("/user/:id", func(c *gin.Context) {
