@@ -50,6 +50,7 @@ func DataPager() HandlerFunc {
 
 // DataJSON DataJSON json data
 //	response format json
+//	c.DataJSON(1,"lost param")
 func (c *Context) DataJSON(args ...interface{}) {
 	var (
 		err    error

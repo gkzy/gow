@@ -1,97 +1,122 @@
+/*
+logy std 标准输出实现
+sam
+2020-09-29
+*/
 package logy
 
 import (
-	"fmt"
 	"io"
 	"os"
+	"sync"
+	"time"
 )
 
-var (
-	Std = New(os.Stdout, "", logDefaultLevel())
-	defaultDepth = 2
-)
-
-func SetOutPut(out io.Writer) {
-	Std.SetOutPut(out)
+type mutexWriter struct {
+	m sync.Mutex
+	w io.Writer
 }
 
-// Print
-func Print(v ...interface{}) {
-	Std.outPut("", Linfo, defaultDepth, fmt.Sprint(v...))
+// WriteLog
+func (mw *mutexWriter) WriteLog(t time.Time, level int, s []byte) {
+	mw.m.Lock()
+	mw.w.Write(s)
+	mw.m.Unlock()
 }
 
-// Printf
-func Printf(format string, v ...interface{}) {
-	Std.outPut("", Linfo, defaultDepth, fmt.Sprintf(format, v))
+// NewMutexWriter returns a currently safe writer.
+func NewMutexWriter(w io.Writer) Writer {
+	return writer{w: w}
 }
 
-// Println
-func Println(v ...interface{}) {
-	Std.outPut("", Linfo, defaultDepth, fmt.Sprintln(v...))
+var std *Logger
+
+func init() {
+	std = NewLogger(NewMutexWriter(os.Stdout), LstdFlags, Ldebug)
+	std.SetCallDepth(std.CallDepth() + 1)
+}
+
+// GetWriter 返回当前writer
+func GetWriter() interface{} {
+	return std.out
+}
+
+func Flags() int {
+	return std.Flags()
+}
+
+func SetFlags(flag int) {
+	std.SetFlags(flag)
+}
+
+func SetLevel(level int) {
+	std.SetLevel(level)
+}
+
+func SetOutput(w Writer, prefix string) {
+	std.SetOutput(w, prefix)
+}
+
+func SetCallDepth(depth int) {
+	std.SetCallDepth(depth)
+}
+
+func CallDepth() int {
+	return std.CallDepth()
+}
+
+func Debug(v ...interface{}) {
+	std.Debug("%v", v...)
 }
 
 func Info(v ...interface{}) {
-	Std.outPut("", Linfo, defaultDepth, fmt.Sprintln(v...))
+	std.Info("%v", v...)
 }
 
-// Infof
-func Infof(format string, v ...interface{}) {
-	Std.outPut("", Linfo, defaultDepth, fmt.Sprintf(format, v))
+func Notice(v ...interface{}) {
+	std.Notice("%v", v...)
 }
 
-// Warn
 func Warn(v ...interface{}) {
-	Std.outPut("", Lwarn, defaultDepth, fmt.Sprintln(v...))
+	std.Warn("%v", v...)
 }
 
-// Warnf
-func Warnf(format string, v ...interface{}) {
-	Std.outPut("", Lwarn, defaultDepth, fmt.Sprintf(format, v))
-}
-
-// Debug
-func Debug(v ...interface{}) {
-	Std.outPut("", Ldebug, defaultDepth, fmt.Sprintln(v...))
-}
-
-// Debugf
-func Debugf(format string, v ...interface{}) {
-	Std.outPut("", Ldebug, defaultDepth, fmt.Sprintf(format, v))
-}
-
-// Error
 func Error(v ...interface{}) {
-	Std.outPut("", Lerror, defaultDepth, fmt.Sprintln(v...))
+	std.Error("%v", v...)
 }
 
-// Errorf
-func Errorf(format string, v ...interface{}) {
-	Std.outPut("", Lerror, defaultDepth, fmt.Sprintf(format, v))
-
-}
-
-// Fatal
-func Fatal(v ...interface{}) {
-	Std.outPut("", Lfatal, defaultDepth, fmt.Sprintln(v...))
-	os.Exit(1)
-}
-
-// Fatalf
-func Fatalf(format string, v ...interface{}) {
-	Std.outPut("", Lfatal, defaultDepth, fmt.Sprintf(format, v...))
-	os.Exit(1)
-}
-
-// Panic
 func Panic(v ...interface{}) {
-	s := fmt.Sprintln(v...)
-	Std.outPut("", Lpanic, defaultDepth, s)
-	panic(s)
+	std.Panic("%v", v...)
 }
 
-// Panicf
+func Fatal(v ...interface{}) {
+	std.Fatal("%v", v...)
+}
+
+func Debugf(format string, v ...interface{}) {
+	std.Debug(format, v...)
+}
+
+func Infof(format string, v ...interface{}) {
+	std.Info(format, v...)
+}
+
+func Noticef(format string, v ...interface{}) {
+	std.Notice(format, v...)
+}
+
+func Warnf(format string, v ...interface{}) {
+	std.Warn(format, v...)
+}
+
+func Errorf(format string, v ...interface{}) {
+	std.Error(format, v...)
+}
+
 func Panicf(format string, v ...interface{}) {
-	s := fmt.Sprintf(format, v)
-	Std.outPut("", Lpanic, defaultDepth, s)
-	panic(s)
+	std.Panic(format, v...)
+}
+
+func Fatalf(format string, v ...interface{}) {
+	std.Fatal(format, v...)
 }

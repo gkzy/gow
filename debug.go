@@ -15,7 +15,7 @@ func IsDebugging() bool {
 	return true
 }
 
-// DebugPrintRouteFunc indicates debug log output format.
+// DebugPrintRouteFunc indicates debug logy output format.
 var DebugPrintRouteFunc func(httpMethod, absolutePath, handlerName string, nuHandlers int)
 
 func debugPrintRoute(httpMethod, absolutePath string, handlers HandlersChain) {

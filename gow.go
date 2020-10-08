@@ -13,9 +13,9 @@ import (
 
 const (
 	defaultMultipartMemory = 32 << 20 // 32 MB
-	devMode                = "dev"
+	DevMode                = "dev"
 	defaultMode            = "dev"
-	prodMode               = "prod"
+	ProdMode               = "prod"
 	defaultViews           = "views"
 	defaultStatic          = "static"
 	defaultHttpAddr        = "127.0.0.1:8080"
@@ -137,14 +137,13 @@ func New() *Engine {
 // Default returns an Engine instance with the Logger and Recovery middleware already attached.
 func Default() *Engine {
 	engine := New()
-	engine.Use(Logger(), Recovery(), Config())
+	engine.Use(Logger(), Recovery())
 	return engine
 }
 
 // SetAppConfig 统一的配置入口
 func (engine *Engine) SetAppConfig(app *AppConfig) {
 	if app != nil {
-		debugPrint("[%s] Use the SetAppConfig method to load the global configuration", app.AppName)
 		engine.AppName = app.AppName
 		engine.RunMode = app.RunMode
 		engine.viewsPath = app.Views
@@ -299,10 +298,8 @@ func (engine *Engine) Run(args ...interface{}) (err error) {
 		engine.Use(Session())
 	}
 
-	if engine.RunMode == devMode {
+	if engine.RunMode == DevMode {
 		fmt.Println(logo)
-		debugPrint("package: %s", pkg)
-		debugPrint("website: %s", site)
 	}
 
 	address := engine.getAddress(args...)
@@ -327,10 +324,8 @@ func (engine *Engine) RunTLS(certFile, keyFile string, args ...interface{}) (err
 		engine.Use(Session())
 	}
 
-	if engine.RunMode == devMode {
+	if engine.RunMode == DevMode {
 		fmt.Println(logo)
-		debugPrint("package: %s", pkg)
-		debugPrint("website: %s", site)
 	}
 
 	address := engine.getAddress(args...)

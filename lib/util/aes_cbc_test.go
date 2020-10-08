@@ -1,14 +1,21 @@
 package util
 
-
 import (
 	"fmt"
 	"testing"
 )
 
+type UserToken struct {
+	UID      int64  `json:"uid"`
+	NickName string `json:"nick_name"`
+	Mobile   string `json:"mobile"`
+	GroupID  int    `json:"group_id"`
+	ProvID   int64  `json:"prov_id"`
+}
+
 func TestAES_CBCTest(t *testing.T) {
-	key := "cbcdEf910djlaLO1"  //16位长度
-	str := "180123456789"
+	key := "cbcdEf910djlaLO1" //16位长度
+	str := "18999998888"
 
 	//编码：
 	enStr := AESEncrypt(str, key)

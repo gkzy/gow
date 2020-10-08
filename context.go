@@ -86,14 +86,13 @@ func (c *Context) reset() {
 	c.Params = c.Params[0:0]
 	c.handlers = nil
 	c.index = -1
-
 	c.fullPath = ""
 	c.Keys = nil
 	c.Errors = c.Errors[0:0]
 	c.Accepted = nil
 	c.queryCache = nil
 	c.formCache = nil
-	c.Data = nil
+	c.Data = make(map[interface{}]interface{}, 0)
 	c.Pager = nil
 	*c.params = (*c.params)[0:0]
 }
@@ -131,7 +130,13 @@ func (c *Context) Next() {
 // IsProd return bool
 //	是否运行在生产环境下
 func (c *Context) IsProd() bool {
-	return c.engine.RunMode == prodMode
+	return c.engine.RunMode == ProdMode
+}
+
+// GetRunMode return app run mode string
+//	return dev or prod
+func (c *Context) GetRunMode() string {
+	return c.engine.RunMode
 }
 
 // IsAborted returns true if the current context was aborted.
@@ -142,6 +147,11 @@ func (c *Context) IsAborted() bool {
 // Abort abort handler
 func (c *Context) Abort() {
 	c.index = abortIndex
+}
+
+// StopRun
+func (c *Context) StopRun() {
+	panic(stopRun)
 }
 
 func (c *Context) Error(err error) *Error {
@@ -711,7 +721,7 @@ func (c *Context) ServerJSON(code int, data interface{}) {
 	c.Header("Content-Type", "application/json; charset=utf-8")
 	c.Status(code)
 	encoder := json.NewEncoder(c.Writer)
-	if c.engine.RunMode == devMode {
+	if c.engine.RunMode == DevMode {
 		encoder.SetIndent("", "  ")
 	}
 	if err := encoder.Encode(data); err != nil {

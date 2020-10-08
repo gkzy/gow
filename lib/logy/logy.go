@@ -1,6 +1,5 @@
 /*
-like https://gitea.com/lunny/log
-but made some adjustments
+logy logger 实现
 */
 package logy
 
@@ -16,224 +15,136 @@ import (
 )
 
 const (
-	logDate      = 1 << iota         // the date: 2009/0123
-	logTime                          // the time: 01:23:23
-	microseconds                     // microsecond resolution: 01:23:23.123123.  assumes logTime.
-	longFile                         // full file name and line number: /a/b/c/d.go:23
-	shortFile                        // final file name element and line number: d.go:23. overrides longFile
-	logModule                        // module name
-	logLevel                         // logLevel: 0(Debug), 1(Info), 2(Warn), 3(Error), 4(Panic), 5(Fatal)
-	longColor                        // color will start [info] end of line
-	shortColor                       // color only include [info]
-	stdFlags     = logDate | logTime // initial values for the standard logger
+	Ldate         = 1 << iota // the date in the local time zone: 2006-01-02
+	Ltime                     // the time in the local time zone: 15:04:05
+	Lmicroseconds             // microsecond resolution: 01:23:23.123.  assumes Ltime.
+	Llongfile                 // full file name and line number: /a/b/c/d.go:23
+	Lshortfile                // final file name element and line number: d.go:23. overrides Llongfile
+	LUTC                      // if Ldate or Ltime is set, use UTC rather than the local time zone
+	Lmodule                   // module name
+	Llevel                    // the level of the logy
+
+	LstdFlags = Ldate | Ltime | Lshortfile | Llevel // initial values for the standard logger
 )
 
 const (
-	Lall = iota
-)
-const (
 	Ldebug = iota
 	Linfo
+	Lnotice
 	Lwarn
 	Lerror
 	Lpanic
 	Lfatal
-	Lnone
-)
-
-const (
-	ForeBlack  = iota + 30 //30
-	ForeRed                //31
-	ForeGreen              //32
-	ForeYellow             //33
-	ForeBlue               //34
-	ForePurple             //35
-	ForeCyan               //36
-	ForeWhite              //37
-)
-
-const (
-	BackBlack  = iota + 40 //40
-	BackRed                //41
-	BackGreen              //42
-	BackYellow             //43
-	BackBlue               //44
-	BackPurple             //45
-	BackCyan               //46
-	BackWhite              //47
 )
 
 var levels = []string{
 	"[D]",
 	"[I]",
+	"[N]",
 	"[W]",
 	"[E]",
 	"[P]",
 	"[F]",
 }
 
-var colors = []int{
-	ForeCyan,
-	ForeGreen,
-	ForeYellow,
-	ForeRed,
-	ForePurple,
-	ForeBlue,
+// Writer writer interface
+type Writer interface {
+	WriteLog(t time.Time, level int, b []byte)
 }
 
-// logDefaultLevel
-func logDefaultLevel() int {
-	if runtime.GOOS == "windows" {
-		return logLevel | stdFlags | shortFile
-	}
-	return logLevel | stdFlags | shortFile | longColor
+type writer struct {
+	w io.Writer
 }
 
-// SetLevels MUST called before all logs
-func SetLevels(lvs []string) {
-	levels = lvs
+func (wr writer) WriteLog(t time.Time, level int, b []byte) {
+	wr.w.Write(b)
 }
 
-// MUST called before all logs
-func SetColors(cls []int) {
-	colors = cls
+// NewWriter return a Writer.
+func NewWriter(w io.Writer) Writer {
+	return writer{w: w}
 }
 
-// logData
-type logData struct {
-	App     string `json:"app"`     //应用
-	Ver     string `json:"ver"`     //应用版本
-	Msg     string `json:"msg"`     //日志内容
-	Level   int    `json:"level"`   //日志等级
-	Created int    `json:"created"` //当前时间
+//===========================logger======================
+
+type LogData struct {
+	AppName    string `json:"app_name"`
+	Level      int    `json:"level"`
+	Msg        string `json:"msg"`
+	Method string
+	UserAgent  string
+	StatusCode int
+	Path       string
+	ClientIP   string
+	Created    int64 `json:"created"`
 }
 
-// Logger
 type Logger struct {
-	mu         sync.Mutex
-	prefix     string
-	flag       int
-	Level      int
-	out        io.Writer
-	buf        bytes.Buffer
-	levelStats [6]int64
-	loc        *time.Location
+	pool      *sync.Pool
+	flag      int
+	level     int
+	out       Writer
+	callDepth int
+	prefix    string
 }
 
-// New return *Logger
-func New(out io.Writer, prefix string, flag int) *Logger {
-	log := &Logger{
-		out:    out,
-		prefix: prefix,
-		Level:  0,
-		flag:   flag,
-		loc:    time.Local,
-	}
-	if out != os.Stdout {
-		log.flag = rmColorFlags(flag)
-	}
-	return log
-}
-
-func (l *Logger) SetOutPut(out io.Writer) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.out = out
-	if out != os.Stdout {
-		l.flag = rmColorFlags(l.flag)
+// NewLogger return a new Logger
+func NewLogger(w Writer, flag int, level int) *Logger {
+	return &Logger{
+		pool: &sync.Pool{
+			New: func() interface{} {
+				return bytes.NewBuffer(nil)
+			},
+		},
+		flag:      flag,
+		level:     level,
+		out:       w,
+		callDepth: 2,
 	}
 }
 
-// ----------------Print-----------------
-
-// Printf
-func (l *Logger) Printf(format string, v ...interface{}) {
-	l.outPut("", Linfo, 2, fmt.Sprintf(format, v...))
+func (l *Logger) SetPrefix(prefix string) {
+	l.prefix = prefix
 }
 
-// Print
-func (l *Logger) Print(v ...interface{}) {
-	l.outPut("", Linfo, 2, fmt.Sprint(v...))
+func (l *Logger) Prefix() string {
+	return l.prefix
 }
 
-// Println
-func (l *Logger) Println(v ...interface{}) {
-	l.outPut("", Linfo, 2, fmt.Sprintln(v...))
+func (l *Logger) Flags() int {
+	return l.flag
 }
 
-// ----------------Debug-----------------
-
-// Debugf
-func (l *Logger) Debugf(format string, v ...interface{}) {
-	l.outPut("", Ldebug, 2, fmt.Sprintf(format, v...))
+func (l *Logger) SetFlags(flag int) {
+	l.flag = flag
 }
 
-// Debug
-func (l *Logger) Debug(v ...interface{}) {
-	l.outPut("", Ldebug, 2, fmt.Sprintln(v...))
+func (l *Logger) SetLevel(level int) {
+	l.level = level
 }
 
-// ----------------Info-----------------
-
-// Infof
-func (l *Logger) Infof(format string, v ...interface{}) {
-	l.outPut("", Linfo, 2, fmt.Sprintf(format, v...))
+func (l *Logger) SetOutput(w Writer, prefix string) {
+	l.out = w
+	l.prefix = prefix
 }
 
-// Info
-func (l *Logger) Info(v ...interface{}) {
-	l.outPut("", Linfo, 2, fmt.Sprintln(v...))
+func (l *Logger) SetCallDepth(depth int) {
+	l.callDepth = depth
 }
 
-// ----------------Warn-----------------
-
-// Warnf
-func (l *Logger) Warnf(format string, v ...interface{}) {
-	l.outPut("", Lwarn, 2, fmt.Sprintf(format, v...))
+func (l *Logger) CallDepth() int {
+	return l.callDepth
 }
 
-// Warn
-func (l *Logger) Warn(v ...interface{}) {
-	l.outPut("", Lwarn, 2, fmt.Sprintln(v...))
-}
-
-// ----------------Error-----------------
-
-// Errorf
-func (l *Logger) Errorf(format string, v ...interface{}) {
-	l.outPut("", Lerror, 2, fmt.Sprintf(format, v...))
-}
-
-// Error
-func (l *Logger) Error(v ...interface{}) {
-	l.outPut("", Lerror, 2, fmt.Sprintln(v...))
-}
-
-// ----------------panic-----------------
-
-// Panicf
-func (l *Logger) Panicf(format string, v ...interface{}) {
-	s := fmt.Sprintf(format, v...)
-	l.outPut("", Lpanic, 2, s)
-	panic(s)
-}
-
-// Panic
-func (l *Logger) Panic(v ...interface{}) {
-	s := fmt.Sprintln(v...)
-	l.outPut("", Lpanic, 2, s)
-	panic(s)
-}
-
-//========================private func=====================
-
-//formatHeader formatHeader
-func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line int, lvl int, reqId string) {
+func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line int, lvl int) {
 	if l.prefix != "" {
+		buf.WriteByte('[')
 		buf.WriteString(l.prefix)
+		buf.WriteByte(']')
+		buf.WriteByte(' ')
 	}
-	if l.flag&(logDate|logTime|microseconds) != 0 {
-		if l.flag&logDate != 0 {
+	if l.flag&(Ldate|Ltime|Lmicroseconds) != 0 {
+		if l.flag&Ldate != 0 {
 			year, month, day := t.Date()
 			itoa(buf, year, 4)
 			buf.WriteByte('/')
@@ -242,46 +153,32 @@ func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line 
 			itoa(buf, day, 2)
 			buf.WriteByte(' ')
 		}
-		if l.flag&(logTime|microseconds) != 0 {
+		if l.flag&(Ltime|Lmicroseconds) != 0 {
 			hour, min, sec := t.Clock()
 			itoa(buf, hour, 2)
 			buf.WriteByte(':')
 			itoa(buf, min, 2)
 			buf.WriteByte(':')
 			itoa(buf, sec, 2)
-			if l.flag&microseconds != 0 {
+			if l.flag&Lmicroseconds != 0 {
 				buf.WriteByte('.')
-				itoa(buf, t.Nanosecond()/1e3, 6)
+				itoa(buf, t.Nanosecond()/1e6, 3)
 			}
 			buf.WriteByte(' ')
 		}
 	}
-	if reqId != "" {
-		buf.WriteByte('[')
-		buf.WriteString(reqId)
-		buf.WriteByte(']')
-		buf.WriteByte(' ')
-	}
-
-	if l.flag&(shortColor|longColor) != 0 {
-		buf.WriteString(fmt.Sprintf("\033[1;%dm", colors[lvl]))
-	}
-	if l.flag&logLevel != 0 {
+	if l.flag&Llevel != 0 {
 		buf.WriteString(levels[lvl])
 		buf.WriteByte(' ')
 	}
-	if l.flag&shortColor != 0 {
-		buf.WriteString("\033[0m")
-	}
-
-	if l.flag&logModule != 0 {
+	if l.flag&Lmodule != 0 {
 		buf.WriteByte('[')
 		buf.WriteString(moduleOf(file))
 		buf.WriteByte(']')
 		buf.WriteByte(' ')
 	}
-	if l.flag&(shortFile|longFile) != 0 {
-		if l.flag&shortFile != 0 {
+	if l.flag&(Lshortfile|Llongfile) != 0 {
+		if l.flag&Lshortfile != 0 {
 			short := file
 			for i := len(file) - 1; i > 0; i-- {
 				if file[i] == '/' {
@@ -291,69 +188,86 @@ func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line 
 			}
 			file = short
 		}
-		buf.WriteByte('[')
 		buf.WriteString(file)
 		buf.WriteByte(':')
 		itoa(buf, line, -1)
-		buf.WriteByte(']')
-		buf.WriteByte(' ')
+		buf.WriteString(": ")
 	}
 }
 
-//outPut outPut
-func (l *Logger) outPut(reqId string, lvl int, callDepth int, s string) error {
-	if lvl < l.Level {
-		return nil
-	}
-	now := time.Now().In(l.loc) // get this early.
+func (l *Logger) output(lvl int, s string) {
+	now := time.Now() // get this early.
 	var file string
 	var line int
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	if l.flag&(shortFile|longFile|logModule) != 0 {
-		l.mu.Unlock()
+	if l.flag&(Lshortfile|Llongfile) != 0 {
 		var ok bool
-		_, file, line, ok = runtime.Caller(callDepth)
+		_, file, line, ok = runtime.Caller(l.callDepth)
 		if !ok {
 			file = "???"
 			line = 0
 		}
-		l.mu.Lock()
 	}
-	l.levelStats[lvl]++
-	l.buf.Reset()
-	l.formatHeader(&l.buf, now, file, line, lvl, reqId)
-	l.buf.WriteString(s)
-	if l.flag&longColor != 0 {
-		l.buf.WriteString("\033[0m")
-	}
+	buf := l.pool.Get().(*bytes.Buffer)
+	buf.Reset()
+	l.formatHeader(buf, now, file, line, lvl)
+	buf.WriteString(s)
 	if len(s) > 0 && s[len(s)-1] != '\n' {
-		l.buf.WriteByte('\n')
+		buf.WriteByte('\n')
 	}
-	_, err := l.out.Write(l.buf.Bytes())
-	return err
+	l.out.WriteLog(now, lvl, buf.Bytes())
+	l.pool.Put(buf)
 }
 
-func rmColorFlags(flag int) int {
-	// for un std out, it should not show color since almost them don't support
-	if flag&longColor != 0 {
-		flag = flag ^ longColor
+func (l *Logger) Debug(format string, v ...interface{}) {
+	if Ldebug < l.level {
+		return
 	}
-	if flag&shortColor != 0 {
-		flag = flag ^ shortColor
-	}
-	return flag
+	l.output(Ldebug, fmt.Sprintf(format, v...))
 }
 
-func moduleOf(file string) string {
-	pos := strings.LastIndex(file, "/")
-	if pos != -1 {
-		pos1 := strings.LastIndex(file[:pos], "/src/")
-		if pos1 != -1 {
-			return file[pos1+5 : pos]
-		}
+func (l *Logger) Info(format string, v ...interface{}) {
+	if Linfo < l.level {
+		return
 	}
-	return "UNKNOWN"
+	l.output(Linfo, fmt.Sprintf(format, v...))
+}
+
+func (l *Logger) Notice(format string, v ...interface{}) {
+	if Lnotice < l.level {
+		return
+	}
+	l.output(Lnotice, fmt.Sprintf(format, v...))
+}
+
+func (l *Logger) Warn(format string, v ...interface{}) {
+	if Lwarn < l.level {
+		return
+	}
+	l.output(Lwarn, fmt.Sprintf(format, v...))
+}
+
+func (l *Logger) Error(format string, v ...interface{}) {
+	if Lerror < l.level {
+		return
+	}
+	l.output(Lerror, fmt.Sprintf(format, v...))
+}
+
+func (l *Logger) Panic(format string, v ...interface{}) {
+	if Lpanic < l.level {
+		return
+	}
+	s := fmt.Sprintf(format, v...)
+	l.output(Lpanic, s)
+	panic(s)
+}
+
+func (l *Logger) Fatal(format string, v ...interface{}) {
+	if Lfatal < l.level {
+		return
+	}
+	l.output(Lfatal, fmt.Sprintf(format, v...))
+	os.Exit(1)
 }
 
 func itoa(buf *bytes.Buffer, i int, wid int) {
@@ -377,4 +291,15 @@ func itoa(buf *bytes.Buffer, i int, wid int) {
 		buf.WriteByte(b[bp])
 		bp++
 	}
+}
+
+func moduleOf(file string) string {
+	pos := strings.LastIndex(file, "/")
+	if pos != -1 {
+		pos1 := strings.LastIndex(file[:pos], "/src/")
+		if pos1 != -1 {
+			return file[pos1+5 : pos]
+		}
+	}
+	return "UNKNOWN"
 }

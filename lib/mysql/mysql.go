@@ -103,7 +103,6 @@ func newORM(db *DBConfig) {
 	orm.LogMode(db.Debug)
 	orm.CommonDB()
 	dbs[db.Name] = orm
-	logy.Info(fmt.Sprintf("[DB]-[%v] initialized successfully => %v", db.Name, str))
 }
 
 //GetORM GetORM

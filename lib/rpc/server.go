@@ -49,5 +49,5 @@ func (m *Server) Run() {
 			logy.Error("[RPC] failed to listen:%v", err)
 		}
 	}()
-	logy.Info(fmt.Sprintf("[RPC] Listening and serving TCP on %v", m.Port))
+
 }

@@ -11,14 +11,15 @@ const (
 	defaultProdConfig = "conf/prod.app.conf"
 )
 
-// initConfig
-func initConfig() {
+// InitConfig init config
+//		初始化配置文件，请在使用 gow/lib/config包之前，使用此方法
+func InitConfig() {
 	fileName := ""
 	runMode := os.Getenv("GOW_RUN_MODE")
 	switch runMode {
-	case devMode:
+	case DevMode:
 		fileName = defaultDevConfig
-	case prodMode:
+	case ProdMode:
 		fileName = defaultProdConfig
 	default:
 		fileName = defaultConfig
@@ -43,13 +44,6 @@ type AppConfig struct {
 	SessionOn     bool   //是否打开session
 }
 
-// Config config handler
-func Config() HandlerFunc {
-	return func(c *Context) {
-		initConfig()
-		c.Next()
-	}
-}
 
 // GetAppConfig 获取配置文件中的信息
 //	使用环境亦是：GOW_RUN_MODE

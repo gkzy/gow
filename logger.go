@@ -2,6 +2,7 @@ package gow
 
 import (
 	"fmt"
+	"github.com/gkzy/gow/lib/logy"
 	"io"
 	"net/http"
 	"os"
@@ -56,7 +57,7 @@ type LoggerConfig struct {
 // LogFormatter gives the signature of the formatter function passed to LoggerWithFormatter
 type LogFormatter func(params LogFormatterParams) string
 
-// LogFormatterParams is the structure any formatter will be handed when time to log comes
+// LogFormatterParams is the structure any formatter will be handed when time to logy comes
 type LogFormatterParams struct {
 	Request *http.Request
 
@@ -130,12 +131,12 @@ func (p *LogFormatterParams) ResetColor() string {
 	return reset
 }
 
-// IsOutputColor indicates whether can colors be outputted to the log.
+// IsOutputColor indicates whether can colors be outputted to the logy.
 func (p *LogFormatterParams) IsOutputColor() bool {
 	return consoleColorMode == forceColor || (consoleColorMode == autoColor && p.isTerm)
 }
 
-// defaultLogFormatter is the default log format function Logger middleware uses.
+// defaultLogFormatter is the default logy format function Logger middleware uses.
 var defaultLogFormatter = func(param LogFormatterParams) string {
 	var statusColor, methodColor, resetColor string
 	if param.IsOutputColor() {
@@ -148,9 +149,7 @@ var defaultLogFormatter = func(param LogFormatterParams) string {
 		// Truncate in a golang < 1.8 safe way
 		param.Latency = param.Latency - param.Latency%time.Second
 	}
-	return fmt.Sprintf("[%s] %v |%s %3d %s| %13v | %15s |%s %-7s %s %s\n%s",
-		param.AppName,
-		param.TimeStamp.Format("2006/01/02 15:04:05"),
+	return fmt.Sprintf("%s %3d %s| %13v | %15s |%s %-7s %s %s\n%s",
 		statusColor, param.StatusCode, resetColor,
 		param.Latency,
 		param.ClientIP,
@@ -188,11 +187,11 @@ func ErrorLoggerT(typ ErrorType) HandlerFunc {
 
 // Logger instances a Logger middleware that will write the logs to gin.DefaultWriter.
 // By default gin.DefaultWriter = os.Stdout.
-func Logger() HandlerFunc {
-	return LoggerWithConfig(LoggerConfig{})
-}
+//func Logger() HandlerFunc {
+//	return LoggerWithConfig(LoggerConfig{})
+//}
 
-// LoggerWithFormatter instance a Logger middleware with the specified log format function.
+// LoggerWithFormatter instance a Logger middleware with the specified logy format function.
 func LoggerWithFormatter(f LogFormatter) HandlerFunc {
 	return LoggerWithConfig(LoggerConfig{
 		Formatter: f,
@@ -274,6 +273,87 @@ func LoggerWithConfig(conf LoggerConfig) HandlerFunc {
 			param.Path = path
 
 			fmt.Fprint(out, formatter(param))
+		}
+	}
+}
+
+// Logger 使用
+func Logger() HandlerFunc {
+	out := DefaultWriter
+
+	notlogged := []string{}
+
+	isTerm := true
+
+	if w, ok := out.(*os.File); !ok || os.Getenv("TERM") == "dumb" ||
+		(!isatty.IsTerminal(w.Fd()) && !isatty.IsCygwinTerminal(w.Fd())) {
+		isTerm = false
+	}
+
+	var skip map[string]struct{}
+
+	if length := len(notlogged); length > 0 {
+		skip = make(map[string]struct{}, length)
+
+		for _, path := range notlogged {
+			skip[path] = struct{}{}
+		}
+	}
+
+	return func(c *Context) {
+		// Start timer
+		start := time.Now()
+		path := c.Request.URL.Path
+		raw := c.Request.URL.RawQuery
+
+		// Process request
+		c.Next()
+
+		// Log only when path is not being skipped
+		if _, ok := skip[path]; !ok {
+			param := LogFormatterParams{
+				Request: c.Request,
+				isTerm:  isTerm,
+				Keys:    c.Keys,
+			}
+
+			// Stop timer
+			param.TimeStamp = time.Now()
+			param.Latency = param.TimeStamp.Sub(start)
+			param.ClientIP = c.ClientIP()
+			param.Method = c.Request.Method
+			param.StatusCode = c.Writer.Status()
+			param.ErrorMessage = c.Errors.ByType(ErrorTypePrivate).String()
+
+			param.BodySize = c.Writer.Size()
+
+			if raw != "" {
+				path = path + "?" + raw
+			}
+
+			param.Path = path
+
+			var statusColor, methodColor, resetColor string
+			if param.IsOutputColor()&&!c.IsProd() {
+				statusColor = param.StatusCodeColor()
+				methodColor = param.MethodColor()
+				resetColor = param.ResetColor()
+			}
+
+			if param.Latency > time.Minute {
+				// Truncate in a golang < 1.8 safe way
+				param.Latency = param.Latency - param.Latency%time.Second
+			}
+			info := fmt.Sprintf("%s %3d %s| %13v | %15s |%s %-7s %s %s\n%s",
+				statusColor, param.StatusCode, resetColor,
+				param.Latency,
+				param.ClientIP,
+				methodColor, param.Method, resetColor,
+				param.Path,
+				param.ErrorMessage,
+			)
+			logy.SetFlags(logy.Ldate | logy.Ltime | logy.Llevel)
+			logy.Info(info)
 		}
 	}
 }
