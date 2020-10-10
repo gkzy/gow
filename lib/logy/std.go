@@ -36,11 +36,6 @@ func init() {
 	std.SetCallDepth(std.CallDepth() + 1)
 }
 
-// GetWriter 返回当前writer
-func GetWriter() interface{} {
-	return std.out
-}
-
 func Flags() int {
 	return std.Flags()
 }

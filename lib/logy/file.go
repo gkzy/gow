@@ -1,25 +1,74 @@
 /*
 logy 写日志文件的实现
 sam
-2020-09-29
+2020-10-09
 */
 package logy
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 )
 
-// FileWriter 文件
+// StorageType 文件存储类型
+type StorageType int
+
+const (
+
+	//按分钟存储
+	StorageTypeMinutes StorageType = iota
+
+	//按小时存储
+	StorageTypeHour
+
+	//按天存储
+	StorageTypeDay
+
+	//按月份存储
+	StorageTypeMonth
+)
+
+var (
+	//formats 文件存储
+	formats = map[StorageType]string{
+		StorageTypeMinutes: "2006-01-02-15-04",
+		StorageTypeHour:    "2006-01-02-15",
+		StorageTypeDay:     "2006-01-02",
+		StorageTypeMonth:   "2006-01",
+	}
+
+	//defaultMaxDay 默认最大保存天数
+	defaultMaxDay = 7
+)
+
+// getFileFormat 获取文件存储格式
+func (s StorageType) getFileFormat() string {
+	return formats[s]
+}
+
+// SetFileFormat 设置文件存储格式
+func SetFileFormat(s StorageType, format string) {
+	formats[s] = format
+}
+
+// FileWriterOption
+type FileWriterOptions struct {
+	StorageType   StorageType //存储类型
+	StorageMaxDay int         //最大保存天数
+	Dir           string      //目录
+	Prefix        string      //前缀
+	date          string      //日期
+}
+
+// FileWriter 文件存储实现
 type FileWriter struct {
+	FileWriterOptions
 	sync.Mutex
-	prefix string
-	dir    string
-	date   string
-	file   *os.File
+	file *os.File
 }
 
 // WriteLog 接口实现
@@ -31,22 +80,20 @@ func (fw *FileWriter) WriteLog(t time.Time, level int, b []byte) {
 }
 
 func (fw *FileWriter) writeFile(t time.Time) {
-	newDate := t.Format("20060102")
+	newDate := t.Format(fw.StorageType.getFileFormat())
 	if fw.date != newDate && fw.file != nil {
 		fw.file.Close()
 		fw.file = nil
 	}
 	if fw.file == nil {
 		//目录
-		dir := filepath.Dir(fw.dir)
+		dir := filepath.Dir(fw.Dir)
 		err := os.MkdirAll(dir, 755)
 		if err != nil {
 			panic(err)
 		}
-
-		//web-20200918.log
-		fileName := fmt.Sprintf("%s-%s.log", fw.prefix, newDate)
-		file, err := os.OpenFile(filepath.Join(fw.dir, fileName), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0664)
+		fileName := fmt.Sprintf("%s.%s.log", fw.Prefix, newDate)
+		file, err := os.OpenFile(filepath.Join(fw.Dir, fileName), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0664)
 		if err != nil {
 			panic(err)
 		}
@@ -56,9 +103,100 @@ func (fw *FileWriter) writeFile(t time.Time) {
 }
 
 // NewFileWriter return a new FileWriter
-func NewFileWriter(prefix, dir string) *FileWriter {
-	return &FileWriter{
-		prefix: prefix,
-		dir:    dir,
+//	struct FileWriterOptions
+func NewFileWriter(opts ...FileWriterOptions) *FileWriter {
+	opt := prepareFileWriterOption(opts)
+	fw := &FileWriter{
+		FileWriterOptions: opt,
 	}
+	fw.clearLog()
+	go fw.startTimer()
+	return fw
+}
+
+//===============private=================
+
+func prepareFileWriterOption(opts []FileWriterOptions) FileWriterOptions {
+	var opt FileWriterOptions
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+
+	if opt.Dir == "" {
+		opt.Dir = "./"
+	}
+	if opt.StorageMaxDay <= 0 {
+		opt.StorageMaxDay = defaultMaxDay
+	}
+
+	return opt
+}
+
+func (fw *FileWriter) startTimer() {
+	now := time.Now()
+	next := now.Add(time.Second * 3600)
+	second := time.Duration(next.Sub(now).Seconds())
+	fw.timer(second)
+}
+
+// timer
+func (fw *FileWriter) timer(seconds time.Duration) {
+	timer := time.NewTicker(seconds * time.Second)
+	for {
+		select {
+		case <-timer.C:
+			{
+				fw.clearLog()
+				nextTimer := time.NewTicker(3600 * time.Second)
+				for {
+					select {
+					case <-nextTimer.C:
+						{
+							fw.startTimer()
+							return
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// clearLog() remove dir logs file
+func (fw *FileWriter) clearLog() {
+	files := getDirFiles(fw.Dir)
+	now := time.Now()
+	for _, item := range files {
+		modTime := item.ModTime
+		if modTime.Add(time.Hour * 24 * time.Duration(fw.StorageMaxDay-1)).Before(now) {
+			os.Remove(item.Name)
+		}
+	}
+}
+
+// FileInfo
+type FileInfo struct {
+	Name    string
+	ModTime time.Time
+	Size    int64
+}
+
+// getDirFiles
+func getDirFiles(path string) (files []*FileInfo) {
+	dir, err := ioutil.ReadDir(path)
+	if err != nil {
+		return
+	}
+	files = make([]*FileInfo, 0)
+	for _, fi := range dir {
+		if !fi.IsDir() {
+			files = append(files, &FileInfo{
+				Name:    fi.Name(),
+				ModTime: fi.ModTime(),
+				Size:    fi.Size(),
+			})
+		}
+	}
+
+	return
 }

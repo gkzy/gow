@@ -52,6 +52,7 @@ type Writer interface {
 	WriteLog(t time.Time, level int, b []byte)
 }
 
+// writer 实现
 type writer struct {
 	w io.Writer
 }
@@ -68,15 +69,15 @@ func NewWriter(w io.Writer) Writer {
 //===========================logger======================
 
 type LogData struct {
-	AppName    string `json:"app_name"`
-	Level      int    `json:"level"`
-	Msg        string `json:"msg"`
-	Method string
-	UserAgent  string
-	StatusCode int
-	Path       string
-	ClientIP   string
-	Created    int64 `json:"created"`
+	Prefix     string `json:"prefix"`      // log prefix
+	Level      int    `json:"level"`       // log level
+	Msg        string `json:"msg"`         // msg
+	Method     string `json:"method"`      // request method
+	UserAgent  string `json:"user_agent"`  // request useragent
+	StatusCode int    `json:"status_code"` // http status code
+	Path       string `json:"path"`        // request path
+	IP         string `json:"ip"`          // client ip
+	Created    int64  `json:"created"`     // timestamp
 }
 
 type Logger struct {
@@ -196,7 +197,7 @@ func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line 
 }
 
 func (l *Logger) output(lvl int, s string) {
-	now := time.Now() // get this early.
+	now := time.Now()
 	var file string
 	var line int
 	if l.flag&(Lshortfile|Llongfile) != 0 {
