@@ -58,3 +58,10 @@ curl http://127.0.0.1:8080
 ```sh
 go build && ./hello
 ```
+
+### 2. 做一个HTML网站
+
+请参考 
+
+[https://github.com/gkzy/gow-site](https://github.com/gkzy/gow-site)
+
