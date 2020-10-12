@@ -2,6 +2,7 @@ package gow
 
 import (
 	"fmt"
+	"github.com/gkzy/gow/lib/logy"
 	"github.com/gkzy/gow/render"
 	"html/template"
 	"net"
@@ -303,7 +304,7 @@ func (engine *Engine) Run(args ...interface{}) (err error) {
 	}
 
 	address := engine.getAddress(args...)
-	debugPrint("[%s] [%s] Listening and serving HTTP on http://%s\n", engine.AppName, engine.RunMode, address)
+	logy.Infof("[%s] [%s] Listening and serving HTTP on http://%s\n", engine.AppName, engine.RunMode, address)
 	err = http.ListenAndServe(address, engine)
 	return
 }
@@ -329,7 +330,7 @@ func (engine *Engine) RunTLS(certFile, keyFile string, args ...interface{}) (err
 	}
 
 	address := engine.getAddress(args...)
-	debugPrint("[%s] [%s] Listening and serving HTTPS on https://%s\n", engine.AppName, engine.RunMode, address)
+	logy.Infof("[%s] [%s] Listening and serving HTTPS on https://%s\n", engine.AppName, engine.RunMode, address)
 	err = http.ListenAndServeTLS(address, certFile, keyFile, engine)
 	return
 }
