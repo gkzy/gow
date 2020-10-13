@@ -1,7 +1,7 @@
 package gow
 
 const (
-	version = "v0.1.0"
+	version = "v0.1.1"
 	pkg     = "https://github.com/gkzy/gow"
 	site    = "https://gow.22v.net"
 	logo    = `   ____   ______  _  __
