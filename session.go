@@ -28,6 +28,7 @@ func Session() HandlerFunc {
 		}
 		sessionID = sessionManager.Start(c.Writer, c.Request)
 		sessionManager.Extension(c.Writer, c.Request)
+
 		c.Next()
 	}
 }

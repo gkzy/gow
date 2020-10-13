@@ -73,7 +73,6 @@ func (m *Manager) Start(w http.ResponseWriter, r *http.Request) string {
 		MaxAge:   int(m.maxLifeTime),
 	}
 	http.SetCookie(w, &cookie)
-
 	return sessionID
 }
 

@@ -692,6 +692,11 @@ func (c *Context) ServerString(code int, msg string) {
 	c.Writer.Write([]byte(msg))
 }
 
+// String write string into the response
+func (c *Context) String(msg string) {
+	c.ServerString(http.StatusOK, msg)
+}
+
 // ServerYAML serializes the given struct as YAML into the response body.
 func (c *Context) ServerYAML(code int, data interface{}) {
 	if code < 0 {

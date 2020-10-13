@@ -22,10 +22,10 @@ type Body struct {
 // Pager pager struct
 type Pager struct {
 	Page      int64 `json:"page"`
-	Limit     int64 `json:"limit"`
+	Limit     int64 `json:"-"`
 	Offset    int64 `json:"-"`
 	Count     int64 `json:"count"`
-	PageCount int64 `json:"page_count"`
+	PageCount int64 `json:"pagecount"`
 }
 
 // DataPager middlewares
@@ -53,11 +53,11 @@ func DataPager() HandlerFunc {
 //	c.DataJSON(1,"lost param")
 func (c *Context) DataJSON(args ...interface{}) {
 	var (
-		err    error
-		pager  *Pager
-		data   interface{}
-		msg    string
-		code   int
+		err   error
+		pager *Pager
+		data  interface{}
+		msg   string
+		code  int
 	)
 	for _, v := range args {
 		switch vv := v.(type) {

@@ -143,6 +143,7 @@ func Default() *Engine {
 }
 
 // SetAppConfig 统一的配置入口
+//	读取conf下的配置文件
 func (engine *Engine) SetAppConfig(app *AppConfig) {
 	if app != nil {
 		engine.AppName = app.AppName
@@ -152,6 +153,11 @@ func (engine *Engine) SetAppConfig(app *AppConfig) {
 		engine.AutoRender = app.AutoRender
 		engine.httpAddr = app.HTTPAddr
 		engine.sessionOn = app.SessionOn
+		//是否打开session
+		if engine.sessionOn {
+			InitSession()
+			engine.Use(Session())
+		}
 	}
 }
 
@@ -184,6 +190,11 @@ func (engine *Engine) SetView(path ...string) {
 // SetSessionOn SetSessionOn
 func (engine *Engine) SetSessionOn(on bool) {
 	engine.sessionOn = on
+	//是否打开session
+	if engine.sessionOn {
+		InitSession()
+		engine.Use(Session())
+	}
 }
 
 // RoutesMap get all router map
@@ -293,12 +304,6 @@ func (engine *Engine) Run(args ...interface{}) (err error) {
 		err = render.AddViewPath(engine.viewsPath)
 	}
 
-	//是否打开session
-	if engine.sessionOn {
-		InitSession()
-		engine.Use(Session())
-	}
-
 	if engine.RunMode == DevMode {
 		fmt.Println(logo)
 	}
@@ -317,12 +322,6 @@ func (engine *Engine) RunTLS(certFile, keyFile string, args ...interface{}) (err
 
 	if engine.AutoRender {
 		err = render.AddViewPath(engine.viewsPath)
-	}
-
-	//是否打开session
-	if engine.sessionOn {
-		InitSession()
-		engine.Use(Session())
 	}
 
 	if engine.RunMode == DevMode {
