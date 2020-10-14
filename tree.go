@@ -13,6 +13,14 @@ var (
 	strStar  = []byte("*")
 )
 
+// getEndChar getEndChar
+func getEndChar(u uint8) bool {
+	if u == '/' || u == '.' || u == '-' || u == '_' {
+		return true
+	}
+	return false
+}
+
 // Param is a single URL parameter, consisting of a key and a value.
 type Param struct {
 	Key   string
@@ -29,6 +37,7 @@ type Params []Param
 func (ps Params) Get(name string) (string, bool) {
 	for _, entry := range ps {
 		if entry.Key == name {
+
 			return entry.Value, true
 		}
 	}
@@ -183,7 +192,7 @@ walk:
 					// Adding a child to a catchAll is not possible
 					n.nType != catchAll &&
 					// Check for longer wildcard, e.g. :name and :names
-					(len(n.path) >= len(path) || path[len(n.path)] == '/') {
+					(len(n.path) >= len(path) || path[len(n.path)] == '/' || path[len(n.path)] == '.') {
 					continue walk
 				}
 
@@ -422,12 +431,16 @@ walk: // Outer loop for walking the tree
 				n = n.children[0]
 				switch n.nType {
 				case param:
-					// Find param end (either '/' or path end)
+					// Find param end (either '/'  or path end)
 					end := 0
-					for end < len(path) && path[end] != '/' {
+					for end < len(path) && !getEndChar(path[end]) {
 						end++
 					}
 
+					knd := 0
+					for knd < len(n.path) && (n.path[knd] != '/') && (n.path[knd] != '.') {
+						knd++
+					}
 					// Save param value
 					if params != nil {
 						if value.params == nil {
@@ -443,7 +456,7 @@ walk: // Outer loop for walking the tree
 							}
 						}
 						(*value.params)[i] = Param{
-							Key:   n.path[1:],
+							Key:   n.path[1:knd],
 							Value: val,
 						}
 					}
@@ -455,10 +468,9 @@ walk: // Outer loop for walking the tree
 							n = n.children[0]
 							continue walk
 						}
-
 						// ... but we can't
-						value.tsr = (len(path) == end+1)
-						return
+						value.tsr = len(path) == end+1
+						//return
 					}
 
 					if value.handlers = n.handlers; value.handlers != nil {
@@ -469,8 +481,9 @@ walk: // Outer loop for walking the tree
 						// No handle found. Check if a handle for this path + a
 						// trailing slash exists for TSR recommendation
 						n = n.children[0]
-						value.tsr = (n.path == "/" && n.handlers != nil)
+						value.tsr = n.path == "/" && n.handlers != nil
 					}
+
 					return
 
 				case catchAll:
@@ -684,7 +697,7 @@ walk: // Outer loop for walking the tree
 			case param:
 				// Find param end (either '/' or path end)
 				end := 0
-				for end < len(path) && path[end] != '/' {
+				for end < len(path) && !getEndChar(path[end]) {
 					end++
 				}
 
