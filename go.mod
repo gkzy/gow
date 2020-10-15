@@ -16,9 +16,11 @@ require (
 	github.com/nsqio/go-nsq v1.0.8
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/satori/go.uuid v1.2.0
+	github.com/signintech/gopdf v0.9.12
 	github.com/tideland/golib v4.24.2+incompatible // indirect
 	github.com/tideland/gorest v2.15.5+incompatible
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	google.golang.org/grpc v1.32.0
+	gopkg.in/yaml.v2 v2.2.2
 )

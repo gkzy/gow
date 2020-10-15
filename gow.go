@@ -421,7 +421,6 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 			continue
 		}
 		root := t[i].root
-		// Find route in tree
 		value := root.getValue(rPath, c.params, unescape)
 		if value.params != nil {
 			c.Params = *value.params

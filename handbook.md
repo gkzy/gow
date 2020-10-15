@@ -2,7 +2,7 @@
 
 gow 是基于gin源码的HTTP框架，在gin的基础上，做了更好的html模板封装和数据输出。可用于开发Web API和Web网站项目
 
-> v0.1.0
+> v0.1.2
 
 ## 1. 项目地址
 
@@ -392,6 +392,7 @@ func main() {
     r.PATCH("/somePatch", patching)
     r.HEAD("/someHead", head)
     r.OPTIONS("/someOptions", options)
+    r.Any("/some",handler)
 
     r.Run()
 }
@@ -927,3 +928,229 @@ func DelTopic(c *gow.Context) {
     c.SetCookie(topicKey, "", -1, "/", "", false, true)
 }
 ```
+---
+
+## 11. 数据分页
+
+### 11.1 使用 DataPager middleware
+
+* DataPager() 实现
+
+```go
+// DataPager middlewares
+//  实现分页参数的处理
+func DataPager() HandlerFunc {
+    return func(c *Context) {
+        pager := new(Pager)
+        pager.Page, _ = c.GetInt64("page", 1)
+        if pager.Page < 1 {
+            pager.Page = 1
+        }
+        pager.Limit, _ = c.GetInt64("limit", 10)
+        if pager.Limit < 1 {
+            pager.Limit = 1
+        }
+
+        pager.Offset = (pager.Page - 1) * pager.Limit
+        c.Pager = pager
+        c.Next()
+    }
+}
+```
+
+* Pager struct
+
+```go
+type Pager struct {
+    Page      int64 `json:"page"`
+    Limit     int64 `json:"-"`
+    Offset    int64 `json:"-"`
+    Count     int64 `json:"count"`
+    PageCount int64 `json:"pagecount"`
+}
+```
+
+* 使用 DataPager()
+
+```go
+func main() {
+    r := gow.Default()
+    r.Use(gow.DataPager())
+    r.GET("/", GetUser)
+    r.Run()
+}
+```
+
+### 11.2 设置 count
+
+```go
+func GetUser(c *gow.Context) {
+    //设置总条数
+    c.Pager.Count = 100
+}
+```
+
+### 11.3 使用 offset与limit
+
+> gorm 数据库翻页查询
+
+```go
+db:=conn.GetORM()
+db.Model(xxx).Limit(c.Pager.Limit).Offset(c.Pager.Offset)....
+```
+
+### 11.3 使用 DataJSON输出
+
+```go
+func (c *Context) DataJSON(args ...interface{})
+```
+
+### 11.4 完整的例子
+
+* main.go
+
+```go
+package main
+
+import (
+    "github.com/gkzy/gow"
+)
+
+type User struct {
+    Nickname string `json:"nickname"`
+    Age      int    `json:"age"`
+}
+
+func main() {
+    r := gow.Default()
+    r.Use(gow.DataPager())
+    r.GET("/users", GetUser)
+    r.Run()
+}
+
+func GetUser(c *gow.Context) {
+    users := make([]*User, 0)
+    //设置总条数
+    c.Pager.Count = 100
+    //输出[]*User和c.Pager
+    c.DataJSON(&users, c.Pager)
+}
+
+```
+
+* 访问
+
+```
+http://127.0.0.1:8080/users?page=1&limit=15
+```
+
+* 响应
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "time": 1602726745,
+  "body": {
+    "pager": {
+      "page": 2,
+      "count": 100,
+      "pagecount": 7
+    },
+    "data": [
+      
+    ]
+  }
+}
+```
+
+
+
+---
+## 15. 扩展库
+
+### package 
+
+```sh
+github.com/gkzy/gow/lib/
+```
+
+
+* config
+
+```
+github.com/gkzy/gow/lib/config
+```
+
+* logy
+```
+github.com/gkzy/gow/lib/logy
+```
+
+* memory cache
+
+```
+github.com/gkzy/gow/lib/cache
+```
+
+
+* mysql
+
+```
+github.com/gkzy/gow/lib/mysql
+```
+
+* nsq
+
+```
+github.com/gkzy/gow/lib/nsq
+```
+
+* oauth
+
+```go
+github.com/gkzy/gow/lib/oauth/apple
+github.com/gkzy/gow/lib/oauth/wechat
+```
+
+* oss
+
+```
+github.com/gkzy/gow/lib/oss
+```
+
+
+* pay
+
+```go
+github.com/gkzy/gow/lib/pay/alipay
+github.com/gkzy/gow/lib/pay/wechat
+github.com/gkzy/gow/lib/pay/apple
+```
+
+* pdf
+
+```go
+github.com/gkzy/gow/lib/pdf
+```
+
+* redis
+
+```go
+github.com/gkzy/gow/lib/redis
+```
+
+* grpc
+
+```go
+github.com/gkzy/gow/lib/rpc
+```
+
+* sms
+
+```go
+github.com/gkzy/gow/lib/sms
+```
+
+
+
+
