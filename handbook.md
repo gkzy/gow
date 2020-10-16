@@ -453,10 +453,10 @@ func main() {
 ### 7.1 获取路由参数 (router param)
  
 ```go
-r.GET("/article/{id}", handler)       // /article/(\w+) ==> /article/abc
-r.GET("/article/{uid:int}", handler)  // /article/(\d+) ==> /article/1
-r.GET("/topic/{name}/{tid:int}")      // /topic/(\w+)/(\d+) ==> /topic/abc/1
-r.Any("/read_{id:int}.html")          // /read_(\d+).html ==> /read_100.html
+r.GET("/article/{id}", handler)               // /article/(\w+) ==> /article/abc
+r.GET("/article/{uid:int}", handler)         // /article/(\d+) ==> /article/1
+r.GET("/topic/{name}/{tid:int}"，handler)    // /topic/(\w+)/(\d+) ==> /topic/abc/1
+r.Any("/read_{id:int}.html",handler)        // /read_(\d+).html ==> /read_100.html
 ```
 
 ```go
