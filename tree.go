@@ -475,6 +475,7 @@ walk: // Outer loop for walking the tree
 
 				case catchAll:
 					// Save param value
+
 					if params != nil {
 						if value.params == nil {
 							value.params = params
@@ -493,7 +494,6 @@ walk: // Outer loop for walking the tree
 							Value: val,
 						}
 					}
-
 					value.handlers = n.handlers
 					value.fullPath = n.fullPath
 					return

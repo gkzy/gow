@@ -34,6 +34,7 @@ func (n *node) getMuxValue(path string, params *Params, unescape bool) (value no
 	if rpm == nil {
 		rpm = getNodeRouterPathMap(n)
 	}
+
 	routerPath, ok := getMatchPath(path, rpm, unescape)
 	if ok {
 		if params != nil {
@@ -83,6 +84,10 @@ func mathPath(path string) (regPath string, keys []string) {
 // regexp match
 func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, bool) {
 	for _, p := range rp {
+		// static file
+		if strings.Contains(p.Path, "*filepath") {
+			return &p, true
+		}
 		regPath, keys := mathPath(p.Path)
 
 		// all match
