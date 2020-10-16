@@ -65,3 +65,8 @@ go build && ./hello
 
 [https://github.com/gkzy/gow-site](https://github.com/gkzy/gow-site)
 
+### 3. 使用手册 
+
+请查阅 使用手册：
+
+[https://gkzy.github.io/](https://gkzy.github.io/)

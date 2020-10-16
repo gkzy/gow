@@ -1,6 +1,6 @@
 # gow 使用手册
 
-> version:v0.1.3
+> version:v0.1.5
 
 gow 是基于gin源码的HTTP框架，在gin的基础上，做了更好的html模板封装和数据输出。可用于开发Web API和Web网站项目
 
