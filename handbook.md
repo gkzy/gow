@@ -1,8 +1,15 @@
 # gow 使用手册
 
+> version:v0.1.3
+
 gow 是基于gin源码的HTTP框架，在gin的基础上，做了更好的html模板封装和数据输出。可用于开发Web API和Web网站项目
 
-> v0.1.2
+
+*更新日志*
+
+```init
+1. 使用类似于mux方式的router，请参考 7.1 获取路由参数
+```
 
 ## 1. 项目地址
 
@@ -446,11 +453,17 @@ func main() {
 ### 7.1 获取路由参数 (router param)
  
 ```go
-r.GET("/article/:id", handler)
+r.GET("/article/{id}", handler)       // /article/(\w+) ==> /article/abc
+r.GET("/article/{uid:int}", handler)  // /article/(\d+) ==> /article/1
+r.GET("/topic/{name}/{tid:int}")      // /topic/(\w+)/(\d+) ==> /topic/abc/1
+r.Any("/read_{id:int}.html")          // /read_(\d+).html ==> /read_100.html
 ```
 
 ```go
 id:=c.Param("id")
+uid:=c.Param("uid")
+name:=c.Param("name")
+tid:=c.Param("tid")
 ```
 
 ### 7.2 获取请求参数(query param && form param)
