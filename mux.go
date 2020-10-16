@@ -7,6 +7,7 @@ sam
 package gow
 
 import (
+	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
@@ -34,7 +35,6 @@ func (n *node) getMuxValue(path string, params *Params, unescape bool) (value no
 	if rpm == nil {
 		rpm = getNodeRouterPathMap(n)
 	}
-
 	routerPath, ok := getMatchPath(path, rpm, unescape)
 	if ok {
 		if params != nil {
@@ -45,12 +45,51 @@ func (n *node) getMuxValue(path string, params *Params, unescape bool) (value no
 		value.fullPath = routerPath.fullPath
 		return
 	}
+
+	prefix := n.path
+	if path == prefix {
+		// We should have reached the node containing the handle.
+		// Check if this node has a handle registered.
+		if value.handlers = n.handlers; value.handlers != nil {
+			value.fullPath = n.fullPath
+			return
+		}
+
+		// If there is no handle for this route, but this route has a
+		// wildcard child, there must be a handle for this path with an
+		// additional trailing slash
+		if path == "/" && n.wildChild && n.nType != root {
+			value.tsr = true
+			return
+		}
+
+		// No handle found. Check if a handle for this path + a
+		// trailing slash exists for trailing slash recommendation
+		for i, c := range []byte(n.indices) {
+			if c == '/' {
+				n = n.children[i]
+				value.tsr = (len(n.path) == 1 && n.handlers != nil) ||
+					(n.nType == catchAll && n.children[0].handlers != nil)
+				return
+			}
+		}
+
+		return
+	}
+
+	// Nothing found. We can recommend to redirect to the same URL with an
+	// extra trailing slash if a leaf exists for that path
+	value.tsr = (path == "/") ||
+		(len(prefix) == len(path)+1 && prefix[len(path)] == '/' &&
+			path == prefix[:len(prefix)-1] && n.handlers != nil)
+
 	return
 }
 
 var (
 	intRegexp  = []byte(`(\d+)`)
 	charRegexp = []byte(`(\w+)`)
+	starRegexp = []byte(`(.*)`)
 )
 
 func mathPath(path string) (regPath string, keys []string) {
@@ -61,15 +100,18 @@ func mathPath(path string) (regPath string, keys []string) {
 	nSplit := strings.Split(path, "/")
 	// like {uid} or {uid:int}
 	wildcardRegexp := regexp.MustCompile(`{\w+}`)
-
 	// replace {uid} to regexp
 	replaceRegexp = charRegexp
-
 	for _, n := range nSplit {
 		// math {uid:int}
 		if strings.Contains(n, ":int") {
 			n = strings.ReplaceAll(n, ":int", "")
 			replaceRegexp = intRegexp
+		}
+		// static /static/*filepath
+		if strings.Contains(n, "*filepath") {
+			n = strings.ReplaceAll(n, "*filepath", string(starRegexp))
+			replaceRegexp = starRegexp
 		}
 		key := wildcardRegexp.FindAllString(n, -1)
 		keys = append(keys, key...)
@@ -84,11 +126,12 @@ func mathPath(path string) (regPath string, keys []string) {
 // regexp match
 func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, bool) {
 	for _, p := range rp {
-		// static file
-		if strings.Contains(p.Path, "*filepath") {
-			return &p, true
-		}
 		regPath, keys := mathPath(p.Path)
+
+		fmt.Println("path:", path)
+		fmt.Println("p.Path:", p.Path)
+		fmt.Println("regPath:", regPath)
+		fmt.Println("=====================================")
 
 		// all match
 		ok, _ := regexp.MatchString("^"+regPath+"$", path)
