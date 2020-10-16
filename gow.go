@@ -421,7 +421,11 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 			continue
 		}
 		root := t[i].root
-		value := root.getValue(rPath, c.params, unescape)
+
+		// use like mux router
+		// sam 2020.10.16
+		// value := root.getValue(rPath, c.params, unescape)
+		value := root.getMuxValue(rPath, c.params, unescape)
 		if value.params != nil {
 			c.Params = *value.params
 		}

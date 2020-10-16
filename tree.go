@@ -9,18 +9,9 @@ import (
 )
 
 var (
-	strMux   = []byte("{")
 	strColon = []byte(":")
 	strStar  = []byte("*")
 )
-
-// getEndChar getEndChar
-func getEndChar(u uint8) bool {
-	if u == '/' || u == '.' || u == '-' || u == '_' || u == '}' {
-		return true
-	}
-	return false
-}
 
 // Param is a single URL parameter, consisting of a key and a value.
 type Param struct {
@@ -88,8 +79,6 @@ func countParams(path string) uint16 {
 	s := StringToBytes(path)
 	n += uint16(bytes.Count(s, strColon))
 	n += uint16(bytes.Count(s, strStar))
-	n += uint16(bytes.Count(s, strMux))
-
 	return n
 }
 
@@ -100,7 +89,6 @@ const (
 	root
 	param
 	catchAll
-	mux // like mux http router
 )
 
 type node struct {
@@ -150,6 +138,7 @@ func (n *node) addRoute(path string, handlers HandlersChain) {
 		n.nType = root
 		return
 	}
+
 	parentFullPathIndex := 0
 
 walk:
@@ -194,7 +183,7 @@ walk:
 					// Adding a child to a catchAll is not possible
 					n.nType != catchAll &&
 					// Check for longer wildcard, e.g. :name and :names
-					(len(n.path) >= len(path) || getEndChar(path[len(n.path)])) {
+					(len(n.path) >= len(path) || path[len(n.path)] == '/') {
 					continue walk
 				}
 
@@ -213,7 +202,7 @@ walk:
 			c := path[0]
 
 			// slash after param
-			if (n.nType == param || n.nType == mux) && c == '/' && len(n.children) == 1 {
+			if n.nType == param && c == '/' && len(n.children) == 1 {
 				parentFullPathIndex += len(n.path)
 				n = n.children[0]
 				n.priority++
@@ -231,7 +220,7 @@ walk:
 			}
 
 			// Otherwise insert it
-			if c != ':' && c != '*' && c != '{' {
+			if c != ':' && c != '*' {
 				// []byte for proper unicode char conversion, see #65
 				n.indices += BytesToString([]byte{c})
 				child := &node{
@@ -260,8 +249,8 @@ walk:
 func findWildcard(path string) (wildcard string, i int, valid bool) {
 	// Find start
 	for start, c := range []byte(path) {
-		// A wildcard starts with ':' (param)  '{' (mux) or '*' (catch-all)
-		if c != ':' && c != '*' && c != '{' {
+		// A wildcard starts with ':' (param) or '*' (catch-all)
+		if c != ':' && c != '*' {
 			continue
 		}
 
@@ -271,7 +260,7 @@ func findWildcard(path string) (wildcard string, i int, valid bool) {
 			switch c {
 			case '/':
 				return path[start : start+1+end], start, valid
-			case ':', '*', '{':
+			case ':', '*':
 				valid = false
 			}
 		}
@@ -304,42 +293,6 @@ func (n *node) insertChild(path string, fullPath string, handlers HandlersChain)
 		if len(n.children) > 0 {
 			panic("wildcard segment '" + wildcard +
 				"' conflicts with existing children in path '" + fullPath + "'")
-		}
-
-		if wildcard[0] == '{' { // mux
-			if i > 0 {
-				// Insert prefix before the current wildcard
-				n.path = path[:i]
-				path = path[i:]
-			}
-
-			n.wildChild = true
-			child := &node{
-				nType:    mux,
-				path:     wildcard,
-				fullPath: fullPath,
-			}
-			n.children = []*node{child}
-			n = child
-			n.priority++
-
-			// if the path doesn't end with the wildcard, then there
-			// will be another non-wildcard subpath starting with '/'
-			if len(wildcard) < len(path) {
-				path = path[len(wildcard):]
-
-				child := &node{
-					priority: 1,
-					fullPath: fullPath,
-				}
-				n.children = []*node{child}
-				n = child
-				continue
-			}
-
-			// Otherwise we're done. Insert the handle in the new leaf
-			n.handlers = handlers
-			return
 		}
 
 		if wildcard[0] == ':' { // param
@@ -469,16 +422,12 @@ walk: // Outer loop for walking the tree
 				n = n.children[0]
 				switch n.nType {
 				case param:
-					// Find param end (either '/'  or path end)
+					// Find param end (either '/' or path end)
 					end := 0
-					for end < len(path) && !getEndChar(path[end]) {
+					for end < len(path) && path[end] != '/' {
 						end++
 					}
 
-					knd := 0
-					for knd < len(n.path) && !getEndChar(n.path[knd]) {
-						knd++
-					}
 					// Save param value
 					if params != nil {
 						if value.params == nil {
@@ -494,7 +443,7 @@ walk: // Outer loop for walking the tree
 							}
 						}
 						(*value.params)[i] = Param{
-							Key:   n.path[1:knd],
+							Key:   n.path[1:],
 							Value: val,
 						}
 					}
@@ -506,9 +455,10 @@ walk: // Outer loop for walking the tree
 							n = n.children[0]
 							continue walk
 						}
+
 						// ... but we can't
-						value.tsr = len(path) == end+1
-						//return
+						value.tsr = (len(path) == end+1)
+						return
 					}
 
 					if value.handlers = n.handlers; value.handlers != nil {
@@ -519,67 +469,8 @@ walk: // Outer loop for walking the tree
 						// No handle found. Check if a handle for this path + a
 						// trailing slash exists for TSR recommendation
 						n = n.children[0]
-						value.tsr = n.path == "/" && n.handlers != nil
+						value.tsr = (n.path == "/" && n.handlers != nil)
 					}
-					return
-
-				case mux:
-					// Find param end (either '/'  or path end)
-					end := 0
-					for end < len(path) && !getEndChar(path[end]) {
-						end++
-					}
-
-					knd := 0
-					for knd < len(n.path) && (n.path[knd] != '}') {
-						knd++
-					}
-
-					// Save param value
-					if params != nil {
-						if value.params == nil {
-							value.params = params
-						}
-						// Expand slice within preallocated capacity
-						i := len(*value.params)
-						*value.params = (*value.params)[:i+1]
-
-						val := path[:end]
-						if unescape {
-							if v, err := url.QueryUnescape(val); err == nil {
-								val = v
-							}
-						}
-						(*value.params)[i] = Param{
-							Key:   n.path[1:knd],
-							Value: val,
-						}
-					}
-
-					// we need to go deeper!
-					if end < len(path) {
-						if len(n.children) > 0 {
-							path = path[end:]
-							n = n.children[0]
-							continue walk
-						}
-						// ... but we can't
-						value.tsr = len(path) == end+1
-						//return
-					}
-					if value.handlers = n.handlers; value.handlers != nil {
-						value.fullPath = n.fullPath
-						return
-					}
-					if len(n.children) == 1 {
-						// No handle found. Check if a handle for this path + a
-						// trailing slash exists for TSR recommendation
-						n = n.children[0]
-						value.tsr = n.path == "/" && n.handlers != nil
-					}
-
-
-
 					return
 
 				case catchAll:
@@ -793,7 +684,7 @@ walk: // Outer loop for walking the tree
 			case param:
 				// Find param end (either '/' or path end)
 				end := 0
-				for end < len(path) && !getEndChar(path[end]) {
+				for end < len(path) && path[end] != '/' {
 					end++
 				}
 
