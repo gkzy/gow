@@ -60,23 +60,27 @@ func mathPath(path string) (regPath string, keys []string) {
 	)
 	nSplit := strings.Split(path, "/")
 	// like {uid} or {uid:int}
-	wildcardRegexp := regexp.MustCompile(`{\w+}`)
 	// replace {uid} to regexp
 	replaceRegexp = charRegexp
+	wildcardRegexp := regexp.MustCompile(`{\w+}`)
 	for _, n := range nSplit {
-		// math {uid:int}
-		if strings.Contains(n, ":int") {
-			n = strings.ReplaceAll(n, ":int", "")
-			replaceRegexp = intRegexp
+		if strings.Contains(n, "{") || strings.Contains(n, "*") {
+			// math {uid:int}
+			if strings.Contains(n, ":int") {
+				n = strings.ReplaceAll(n, ":int", "")
+				replaceRegexp = intRegexp
+			}
+			// static /static/*filepath
+			if strings.Contains(n, "*filepath") {
+				n = strings.ReplaceAll(n, "*filepath", string(starRegexp))
+				replaceRegexp = starRegexp
+			}
+			key := wildcardRegexp.FindAllString(n, -1)
+			keys = append(keys, key...)
+			nPath = string(wildcardRegexp.ReplaceAll([]byte(n), replaceRegexp))
+		} else {
+			nPath = n
 		}
-		// static /static/*filepath
-		if strings.Contains(n, "*filepath") {
-			n = strings.ReplaceAll(n, "*filepath", string(starRegexp))
-			replaceRegexp = starRegexp
-		}
-		key := wildcardRegexp.FindAllString(n, -1)
-		keys = append(keys, key...)
-		nPath = string(wildcardRegexp.ReplaceAll([]byte(n), replaceRegexp))
 		regPath = regPath + nPath + "/"
 	}
 	regPath = regPath[:len(regPath)-1]
@@ -86,28 +90,35 @@ func mathPath(path string) (regPath string, keys []string) {
 // getMatchPath return routerPathInfo
 // regexp match
 func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, bool) {
+	lastChar := path[len(path)-1:]
+	if path != "/" && lastChar == "/" && !strings.Contains(path, ".") {
+		path = path[:len(path)-1]
+	}
 	for _, p := range rp {
 		regPath, keys := mathPath(p.Path)
-
-		// all match
-		ok, _ := regexp.MatchString("^"+regPath+"$", path)
-		if ok {
-			valueRegexp := regexp.MustCompile(regPath)
-			if unescape {
-				if v, err := url.QueryUnescape(path); err == nil {
-					path = v
+		if path == regPath {
+			return &p, true
+		} else {
+			// all match
+			ok, _ := regexp.MatchString("^"+regPath+"$", path)
+			if ok {
+				valueRegexp := regexp.MustCompile(regPath)
+				if unescape {
+					if v, err := url.QueryUnescape(path); err == nil {
+						path = v
+					}
 				}
+				values := valueRegexp.FindStringSubmatch(path)
+				params := new(Params)
+				for i, k := range keys {
+					*params = append(*params, Param{
+						Key:   strings.ReplaceAll(strings.ReplaceAll(k, "{", ""), "}", ""),
+						Value: values[i+1],
+					})
+				}
+				p.params = params
+				return &p, ok
 			}
-			values := valueRegexp.FindStringSubmatch(path)
-			params := new(Params)
-			for i, k := range keys {
-				*params = append(*params, Param{
-					Key:   strings.ReplaceAll(strings.ReplaceAll(k, "{", ""), "}", ""),
-					Value: values[i+1],
-				})
-			}
-			p.params = params
-			return &p, ok
 		}
 	}
 	return nil, false
