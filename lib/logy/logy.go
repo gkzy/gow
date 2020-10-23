@@ -28,13 +28,13 @@ const (
 )
 
 const (
-	Ldebug = iota
-	Linfo
-	Lnotice
-	Lwarn
-	Lerror
-	Lpanic
-	Lfatal
+	LevelDebug = iota
+	LevelInfo
+	LevelNotice
+	LevelWarn
+	LevelError
+	LevelPanic
+	LevelFatal
 )
 
 var levels = []string{
@@ -220,54 +220,54 @@ func (l *Logger) output(lvl int, s string) {
 }
 
 func (l *Logger) Debug(format string, v ...interface{}) {
-	if Ldebug < l.level {
+	if LevelDebug < l.level {
 		return
 	}
-	l.output(Ldebug, fmt.Sprintf(format, v...))
+	l.output(LevelDebug, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Info(format string, v ...interface{}) {
-	if Linfo < l.level {
+	if LevelInfo < l.level {
 		return
 	}
-	l.output(Linfo, fmt.Sprintf(format, v...))
+	l.output(LevelInfo, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Notice(format string, v ...interface{}) {
-	if Lnotice < l.level {
+	if LevelNotice < l.level {
 		return
 	}
-	l.output(Lnotice, fmt.Sprintf(format, v...))
+	l.output(LevelNotice, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Warn(format string, v ...interface{}) {
-	if Lwarn < l.level {
+	if LevelWarn < l.level {
 		return
 	}
-	l.output(Lwarn, fmt.Sprintf(format, v...))
+	l.output(LevelWarn, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Error(format string, v ...interface{}) {
-	if Lerror < l.level {
+	if LevelError < l.level {
 		return
 	}
-	l.output(Lerror, fmt.Sprintf(format, v...))
+	l.output(LevelError, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Panic(format string, v ...interface{}) {
-	if Lpanic < l.level {
+	if LevelPanic < l.level {
 		return
 	}
 	s := fmt.Sprintf(format, v...)
-	l.output(Lpanic, s)
+	l.output(LevelPanic, s)
 	panic(s)
 }
 
 func (l *Logger) Fatal(format string, v ...interface{}) {
-	if Lfatal < l.level {
+	if LevelFatal < l.level {
 		return
 	}
-	l.output(Lfatal, fmt.Sprintf(format, v...))
+	l.output(LevelFatal, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 

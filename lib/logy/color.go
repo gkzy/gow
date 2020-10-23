@@ -14,13 +14,13 @@ const colorEnd = "\033[0m"
 
 // 加粗的颜色输出
 var logColor = []string{
-	Ldebug:  "\033[1;36m",
-	Linfo:   "\033[1;37m",
-	Lnotice: "\033[1;33m",
-	Lwarn:   "\033[1;35m",
-	Lerror:  "\033[1;31m",
-	Lpanic:  "\033[1;31m",
-	Lfatal:  "\033[1;31m",
+	LevelDebug:  "\033[1;36m",
+	LevelInfo:   "\033[1;37m",
+	LevelNotice: "\033[1;33m",
+	LevelWarn:   "\033[1;35m",
+	LevelError:  "\033[1;31m",
+	LevelPanic:  "\033[1;31m",
+	LevelFatal:  "\033[1;31m",
 }
 
 type colorWriter struct {

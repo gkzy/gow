@@ -45,8 +45,13 @@ func (m *AliSmsClient) SendVerifyCode(sign, templateID, phone, code string) (err
 }
 
 //SendMarket 营销短信
-func (m *AliSmsClient) SendNotice(sign, templateId, phone string) (err error) {
+func (m *AliSmsClient) SendMarket(sign, templateId, phone string) (err error) {
 	return m.send(phone, sign, templateId, "")
+}
+
+// SendNotice 发送通知短信
+func (m *AliSmsClient) SendNotice(sign, templateId, phone string, templateParam string) (err error) {
+	return m.send(phone, sign, templateId, templateParam)
 }
 
 //{"Message":"OK","RequestId":"8295BA5B-0536-463D-BC2D-49A96CAAC37E","BizId":"354401592887345639^0","Code":"OK"}
