@@ -1,6 +1,6 @@
 # gow 使用手册
 
-> version:v0.1.5
+> version:v0.1.7
 
 gow 是基于gin源码的HTTP框架，在gin的基础上，做了更好的html模板封装和数据输出。可用于开发Web API和Web网站项目
 
@@ -8,7 +8,8 @@ gow 是基于gin源码的HTTP框架，在gin的基础上，做了更好的html�
 *更新日志*
 
 ```init
-1. 使用类似于mux方式的router，请参考 7.1 获取路由参数
+1. 抛弃了gin的路由方式和实现；
+2. 
 ```
 
 ## 1. 项目地址
