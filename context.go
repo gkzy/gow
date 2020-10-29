@@ -206,7 +206,7 @@ func (c *Context) Host() string {
 
 // Param returns the value of the URL param.
 // It is a shortcut for c.Params.ByName(key)
-//     router.GET("/user/:id", func(c *gin.Context) {
+//     router.GET("/user/{id}, func(c *gin.Context) {
 //         // a GET request to /user/john
 //         id := c.Param("id") // id == "john"
 //     })
@@ -214,12 +214,24 @@ func (c *Context) Param(key string) string {
 	return c.Params.ByName(key)
 }
 
+// ParamInt  return the value of the URL param
+func (c *Context) ParamInt(key string) (int, error) {
+	v := c.Param(key)
+	return strconv.Atoi(v)
+}
+
+//  ParamInt64  return the value of the URL param
+func (c *Context) ParamInt64(key string) (int64, error) {
+	v := c.Param(key)
+	return strconv.ParseInt(v, 10, 64)
+}
+
 // UserAgent get useragent
 func (c *Context) UserAgent() string {
 	return c.GetHeader("User-Agent")
 }
 
-// Query Query
+// Query return query string
 func (c *Context) Query(key string) string {
 	return c.Request.URL.Query().Get(key)
 }
@@ -229,7 +241,7 @@ func (c *Context) Form(key string) string {
 	return c.Request.FormValue(key)
 }
 
-//input
+// input
 func (c *Context) input() url.Values {
 	if c.Request.Form == nil {
 		c.Request.ParseForm()
@@ -237,7 +249,7 @@ func (c *Context) input() url.Values {
 	return c.Request.Form
 }
 
-//formValue formValue
+// formValue formValue
 func (c *Context) formValue(key string) string {
 	if v := c.Form(key); v != "" {
 		return v
@@ -740,7 +752,30 @@ func (c *Context) JSON(data interface{}) {
 	c.ServerJSON(http.StatusOK, data)
 }
 
-// ServerXML response xml
+// ServerJSONP write data by jsonp format
+func (c *Context) ServerJSONP(code int, callback string, data interface{}) {
+	if code < 0 {
+		code = http.StatusOK
+	}
+	c.Header("Content-Type", "application/javascript; charset=utf-8")
+	c.Status(code)
+
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		c.Header("Content-Type", "")
+		c.ServerString(http.StatusServiceUnavailable, err.Error())
+	}
+	c.Writer.Write([]byte(callback + "{"))
+	c.Writer.Write(bytes)
+	c.Writer.Write([]byte(");"))
+}
+
+// JSONP write date by jsonp format
+func (c *Context) JSONP(callback string, data interface{}) {
+	c.ServerJSONP(http.StatusOK, callback, data)
+}
+
+// ServerXML write data by xml format
 func (c *Context) ServerXML(code int, data interface{}) {
 	if code < 0 {
 		code = http.StatusOK
