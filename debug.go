@@ -64,7 +64,7 @@ func getMinVer(v string) (uint64, error) {
 func debugPrintError(err error) {
 	if err != nil {
 		if IsDebugging() {
-			fmt.Fprintf(DefaultErrorWriter, "[GIN-debug] [ERROR] %v\n", err)
+			fmt.Fprintf(DefaultErrorWriter, "[gow-debug] [ERROR] %v\n", err)
 		}
 	}
 }

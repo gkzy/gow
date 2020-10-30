@@ -1,6 +1,7 @@
 package logy
 
 import (
+	"fmt"
 	"github.com/imroc/req"
 	"time"
 )
@@ -21,11 +22,11 @@ type HTTPWriter struct {
 func (aw *HTTPWriter) WriteLog(t time.Time, level int, b []byte) {
 	// 只上报错误及以上日志
 	if level >= LevelError {
-		resp, err := aw.httpRequest(aw.url, aw.method, aw.token, b)
+		_, err := aw.httpRequest(aw.url, aw.method, aw.token, b)
 		if err != nil {
-			Errorf("[http writer] error:%v", err)
+			fmt.Printf("[http writer] error:%v \n", err)
 		}
-		Debug(resp)
+		//fmt.Println(resp)
 	}
 }
 

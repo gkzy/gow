@@ -298,7 +298,7 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 // It is a shortcut for http.ListenAndServe(addr, router)
 // Note: this method will block the calling goroutine indefinitely unless an error happens.
 func (engine *Engine) Run(args ...interface{}) (err error) {
-	defer func() { debugPrintError(err) }()
+	defer func() { logy.Error(err) }()
 
 	if engine.AutoRender {
 		err = render.AddViewPath(engine.viewsPath)
@@ -318,7 +318,7 @@ func (engine *Engine) Run(args ...interface{}) (err error) {
 // It is a shortcut for http.ListenAndServeTLS(addr, certFile, keyFile, router)
 // Note: this method will block the calling goroutine indefinitely unless an error happens.
 func (engine *Engine) RunTLS(certFile, keyFile string, args ...interface{}) (err error) {
-	defer func() { debugPrintError(err) }()
+	defer func() { logy.Error(err) }()
 
 	if engine.AutoRender {
 		err = render.AddViewPath(engine.viewsPath)
