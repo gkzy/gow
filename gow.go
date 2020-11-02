@@ -66,6 +66,7 @@ type Engine struct {
 	HTMLRender render.HTMLRender
 	delims     render.Delims
 	FuncMap    template.FuncMap
+	Render     render.Render
 	viewsPath  string
 	staticPath string
 	sessionOn  bool
@@ -125,6 +126,7 @@ func New() *Engine {
 		delims:                 render.Delims{Left: "{{", Right: "}}"},
 		secureJSONPrefix:       "while(1);",
 		viewsPath:              defaultViews,
+		Render:                 nil,
 		staticPath:             defaultStatic,
 		httpAddr:               defaultHttpAddr,
 	}
@@ -301,7 +303,7 @@ func (engine *Engine) Run(args ...interface{}) (err error) {
 	defer func() { logy.Error(err) }()
 
 	if engine.AutoRender {
-		err = render.AddViewPath(engine.viewsPath)
+		engine.Render = render.HTMLRender{}.NewHTMLRender(engine.viewsPath, engine.FuncMap, engine.delims, engine.AutoRender, engine.RunMode)
 	}
 
 	if engine.RunMode == DevMode {
@@ -321,7 +323,7 @@ func (engine *Engine) RunTLS(certFile, keyFile string, args ...interface{}) (err
 	defer func() { logy.Error(err) }()
 
 	if engine.AutoRender {
-		err = render.AddViewPath(engine.viewsPath)
+		engine.Render = render.HTMLRender{}.NewHTMLRender(engine.viewsPath, engine.FuncMap, engine.delims, engine.AutoRender, engine.RunMode)
 	}
 
 	if engine.RunMode == DevMode {

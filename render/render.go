@@ -4,7 +4,7 @@ import "net/http"
 
 // Render interface is to be implemented by HTML
 type Render interface {
-	Render(w http.ResponseWriter) error
+	Render(w http.ResponseWriter,name string,data interface{}) error
 	WriteContentType(w http.ResponseWriter)
 }
 

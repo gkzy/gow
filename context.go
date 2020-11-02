@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/gkzy/gow/render"
 	"gopkg.in/yaml.v2"
 	"io"
 	"io/ioutil"
@@ -654,14 +653,14 @@ func (c *Context) Body() []byte {
 }
 
 // Render render html
-func (c *Context) Render(statusCode int, r render.Render) {
+func (c *Context) Render(statusCode int, name string, data interface{}) {
 	c.Writer.WriteHeader(statusCode)
 	if !bodyAllowedForStatus(statusCode) {
-		r.WriteContentType(c.Writer)
+		c.engine.Render.WriteContentType(c.Writer)
 		c.Writer.WriteHeader(statusCode)
 		return
 	}
-	if err := r.Render(c.Writer); err != nil {
+	if err := c.engine.Render.Render(c.Writer, name, data); err != nil {
 		fmt.Println(err)
 	}
 }
@@ -679,8 +678,7 @@ func (c *Context) ServerHTML(statusCode int, name string, data ...interface{}) {
 	} else {
 		v = c.Data
 	}
-	render := render.HTMLRender{}.Instance(c.engine.viewsPath, name, c.engine.FuncMap, c.engine.delims, c.engine.AutoRender, c.engine.RunMode, v)
-	c.Render(statusCode, render)
+	c.Render(statusCode, name, v)
 }
 
 // HTML render html page

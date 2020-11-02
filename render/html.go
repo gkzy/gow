@@ -22,7 +22,7 @@ var (
 	beeViewPathTemplates = make(map[string]map[string]*template.Template)
 	templatesLock        sync.RWMutex
 	// beeTemplateExt stores the template extension which will build
-	beeTemplateExt = []string{"tpl", "html", "gohtml"}
+	beeTemplateExt = []string{"tpl", "html", "gohtml", "htm"}
 	// beeTemplatePreprocessors stores associations of extension -> preprocessor handler
 	beeTemplateEngines = map[string]templatePreProcessor{}
 	beeTemplateFS      = defaultFSFunc
@@ -47,16 +47,14 @@ type HTMLRender struct {
 	RunMode    string
 }
 
-// Instance
-func (m HTMLRender) Instance(dir, name string, funcMap template.FuncMap, delims Delims, autoRender bool, runMode string, data interface{}) Render {
+// NewHTMLRender return a Render  interface
+func (m HTMLRender) NewHTMLRender(dir string, funcMap template.FuncMap, delims Delims, autoRender bool, runMode string) Render {
 	if runMode == "" {
 		runMode = defaultRunMode
 	}
 	render := HTMLRender{
 		ViewPath:   dir,
-		Name:       name,
 		AutoRender: autoRender,
-		Data:       data,
 		FuncMap:    funcMap,
 		Delims:     delims,
 		RunMode:    runMode,
@@ -65,14 +63,20 @@ func (m HTMLRender) Instance(dir, name string, funcMap template.FuncMap, delims 
 	for key, item := range funcMap {
 		templateFuncMap[key] = item
 	}
+
+	// add view path
+	addViewPath(render.ViewPath)
 	return render
 }
 
 // Render
-func (m HTMLRender) Render(w http.ResponseWriter) error {
+func (m HTMLRender) Render(w http.ResponseWriter, name string, data interface{}) error {
 	if !m.AutoRender {
 		return nil
 	}
+	m.Name = name
+	m.Data = data
+
 	b, err := m.renderBytes()
 	if err != nil {
 		return err
@@ -95,20 +99,22 @@ func (m HTMLRender) renderBytes() ([]byte, error) {
 // renderTemplate
 func (m HTMLRender) renderTemplate() (bytes.Buffer, error) {
 	var buf bytes.Buffer
-	//TODO:run mode
 
-	files := []string{m.Name}
-	BuildTemplate(m.ViewPath, files...)
+	if m.RunMode == defaultRunMode {
+		files := []string{m.Name}
+		BuildTemplate(m.ViewPath, files...)
+	}
 	return buf, ExecuteTemplate(&buf, m.Name, m.ViewPath, m.RunMode, m.Data)
 }
 
-// AddViewPath AddViewPath
-func AddViewPath(viewPath string) error {
+// addViewPath addViewPath
+func addViewPath(viewPath string) error {
 	if _, exist := beeViewPathTemplates[viewPath]; exist {
 		return nil
 	}
 	beeViewPathTemplates[viewPath] = make(map[string]*template.Template)
-	return BuildTemplate(viewPath)
+	err := BuildTemplate(viewPath)
+	return err
 }
 
 // ExecuteTemplate applies the template with name  to the specified data object,
@@ -125,10 +131,10 @@ func ExecuteTemplate(wr io.Writer, name, viewPath string, runMode string, data i
 // writing the output to wr.
 // A template will be executed safely in parallel.
 func ExecuteViewPathTemplate(wr io.Writer, name string, viewPath string, runMode string, data interface{}) error {
-	//if runMode == "dev" {
+	if runMode == defaultRunMode {
 		templatesLock.RLock()
 		defer templatesLock.RUnlock()
-	//}
+	}
 	if beeTemplates, ok := beeViewPathTemplates[viewPath]; ok {
 		if t, ok := beeTemplates[name]; ok {
 			var err error
