@@ -142,6 +142,13 @@ func (m *RDSCommon) SETNX(key string, v interface{}) (bool, error) {
 	return redis.Bool(rc.Do("SETNX", redis.Args{}.Add(key).AddFlat(v)...))
 }
 
+// Incr 自增
+func (m *RDSCommon) Incr(key string) (num int64, err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	return redis.Int64(rc.Do("Incr", key))
+}
+
 /************************************/
 /********     REDIS hash 	 ********/
 /************************************/
@@ -205,6 +212,36 @@ func (m *RDSCommon) HashFieldExists(key, field string) (bool, error) {
 /************************************/
 /********     REDIS list 	 ********/
 /************************************/
+
+// SetList 添加list
+func (m *RDSCommon) SetList(key string, values []string) error {
+	rc := m.client.Get()
+	defer rc.Close()
+	args := redis.Args{}.Add(key)
+	for _, value := range values {
+		args = args.Add(value)
+	}
+	_, err := rc.Do("RPUSH", args...)
+	return err
+}
+
+// GetList
+func (m *RDSCommon) GetList(key string) (data []string, err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	var values []interface{}
+	values, err = redis.Values(rc.Do("LRANGE", key, 0, -1))
+	if err != nil {
+		return
+	}
+	if err = redis.ScanSlice(values, &data); err != nil {
+		return
+	}
+	if len(data) == 0 {
+		return data, fmt.Errorf("未查询到数据")
+	}
+	return
+}
 
 /************************************/
 /********     REDIS ZSET 	 ********/
@@ -270,7 +307,8 @@ func (m *RDSCommon) GetZSetWithScoreToInt64s(key string, offset, limit int) (ii 
 	return
 }
 
-// GetZSetCountByArea 获取指定区间min-max之间成员的数量
+// GetZSetCountByArea 获取指定区间min-max
+//之间成员的数量
 func (m *RDSCommon) GetZSetCountByArea(key string, min, max int64) (count int64, err error) {
 	rc := m.client.Get()
 	defer rc.Close()
@@ -303,6 +341,36 @@ func (m *RDSCommon) DelZSetMember(key string, member interface{}) error {
 /************************************/
 /********     REDIS set 	 ********/
 /************************************/
+
+// AddSet
+func (m *RDSCommon) AddSet(key string, values []string) error {
+	rc := m.client.Get()
+	defer rc.Close()
+	args := redis.Args{}.Add(key)
+	for _, value := range values {
+		args = args.Add(value)
+	}
+	_, err := rc.Do("SADD", args...)
+	return err
+}
+
+// GetSetData
+func (m *RDSCommon) GetSetData(key string) (data []string, err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	var values []interface{}
+	values, err = redis.Values(rc.Do("SMEMBERS", key))
+	if err != nil {
+		return
+	}
+	if err = redis.ScanSlice(values, &data); err != nil {
+		return
+	}
+	if len(data) == 0 {
+		return data, fmt.Errorf("未查询到数据")
+	}
+	return
+}
 
 /************************************/
 /********     REDIS bit 	 ********/
