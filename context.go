@@ -662,7 +662,7 @@ func (c *Context) Render(statusCode int, r render.Render) {
 		return
 	}
 	if err := r.Render(c.Writer); err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 }
 

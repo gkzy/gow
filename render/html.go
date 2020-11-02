@@ -95,10 +95,10 @@ func (m HTMLRender) renderBytes() ([]byte, error) {
 // renderTemplate
 func (m HTMLRender) renderTemplate() (bytes.Buffer, error) {
 	var buf bytes.Buffer
-	if m.RunMode == "dev" {
-		files := []string{m.Name}
-		BuildTemplate(m.ViewPath, files...)
-	}
+	//TODO:run mode
+
+	files := []string{m.Name}
+	BuildTemplate(m.ViewPath, files...)
 	return buf, ExecuteTemplate(&buf, m.Name, m.ViewPath, m.RunMode, m.Data)
 }
 
@@ -125,10 +125,10 @@ func ExecuteTemplate(wr io.Writer, name, viewPath string, runMode string, data i
 // writing the output to wr.
 // A template will be executed safely in parallel.
 func ExecuteViewPathTemplate(wr io.Writer, name string, viewPath string, runMode string, data interface{}) error {
-	if runMode == "dev" {
+	//if runMode == "dev" {
 		templatesLock.RLock()
 		defer templatesLock.RUnlock()
-	}
+	//}
 	if beeTemplates, ok := beeViewPathTemplates[viewPath]; ok {
 		if t, ok := beeTemplates[name]; ok {
 			var err error
