@@ -12,6 +12,8 @@ const (
 	NoCompression      = gzip.NoCompression
 )
 
+// Gzip middleware
+//	1~9 Compress level
 func Gzip(level int, options ...Option) gow.HandlerFunc {
 	return newGzipHandler(level, options...).Handle
 }

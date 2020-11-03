@@ -838,6 +838,14 @@ func (c *Context) AbortWithStatus(code int) {
 	c.Abort()
 }
 
+// AbortWithError `AbortWithStatus()` and `Error()` internally.
+// This method stops the chain, writes the status code and pushes the specified error to `c.Errors`.
+// See Context.Error() for more details.
+func (c *Context) AbortWithError(code int, err error) *Error {
+	c.AbortWithStatus(code)
+	return c.Error(err)
+}
+
 // File writes the specified file into the body stream in a efficient way.
 func (c *Context) File(filepath string) {
 	http.ServeFile(c.Writer, c.Request, filepath)

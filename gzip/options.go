@@ -100,6 +100,7 @@ func (e ExcludedPathesRegexs) Contains(requestURI string) bool {
 	return false
 }
 
+// DefaultDecompressHandle
 func DefaultDecompressHandle(c *gow.Context) {
 	if c.Request.Body == nil {
 		return
