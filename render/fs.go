@@ -1,7 +1,6 @@
 package render
 
 
-
 import (
 	"net/http"
 	"os"

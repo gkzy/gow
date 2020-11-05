@@ -42,8 +42,8 @@ type AppConfig struct {
 	TemplateLeft  string //模板符号
 	TemplateRight string //模板符号
 	SessionOn     bool   //是否打开session
+	GzipOn        bool   //是卅打开gzip
 }
-
 
 // GetAppConfig 获取配置文件中的信息
 //	使用环境亦是：GOW_RUN_MODE
@@ -61,6 +61,7 @@ func GetAppConfig() *AppConfig {
 		TemplateLeft:  config.DefaultString("template_left", "{{"),
 		TemplateRight: config.DefaultString("template_right", "}}"),
 		SessionOn:     config.DefaultBool("session_on", false),
+		GzipOn:        config.DefaultBool("gzip_on", false),
 	}
 
 }

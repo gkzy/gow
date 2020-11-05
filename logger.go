@@ -259,7 +259,7 @@ func LoggerWithConfig(conf LoggerConfig) HandlerFunc {
 			param.AppName = c.engine.AppName
 			param.TimeStamp = time.Now()
 			param.Latency = param.TimeStamp.Sub(start)
-			param.ClientIP = c.ClientIP()
+			param.ClientIP = c.GetIP()
 			param.Method = c.Request.Method
 			param.StatusCode = c.Writer.Status()
 			param.ErrorMessage = c.Errors.ByType(ErrorTypePrivate).String()
@@ -320,7 +320,7 @@ func Logger() HandlerFunc {
 			// Stop timer
 			param.TimeStamp = time.Now()
 			param.Latency = param.TimeStamp.Sub(start)
-			param.ClientIP = c.ClientIP()
+			param.ClientIP = c.GetIP()
 			param.Method = c.Request.Method
 			param.StatusCode = c.Writer.Status()
 			param.ErrorMessage = c.Errors.ByType(ErrorTypePrivate).String()
