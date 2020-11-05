@@ -2,7 +2,6 @@ package gow
 
 import (
 	"fmt"
-	"github.com/gkzy/gow/gzip"
 	"github.com/gkzy/gow/lib/logy"
 	"github.com/gkzy/gow/render"
 	"html/template"
@@ -71,7 +70,6 @@ type Engine struct {
 	viewsPath  string
 	staticPath string
 	sessionOn  bool
-	gzipOn     bool
 
 	RouterGroup
 	RedirectTrailingSlash  bool
@@ -157,11 +155,6 @@ func (engine *Engine) SetAppConfig(app *AppConfig) {
 		engine.AutoRender = app.AutoRender
 		engine.httpAddr = app.HTTPAddr
 		engine.sessionOn = app.SessionOn
-		engine.gzipOn = app.GzipOn
-		// gzip on
-		if engine.gzipOn {
-			engine.Use(gzip.Gzip(1))
-		}
 		// session on
 		if engine.sessionOn {
 			InitSession()
