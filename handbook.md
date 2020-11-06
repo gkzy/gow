@@ -1,6 +1,6 @@
 # gow 使用手册
 
-> version:v0.1.7
+> v0.2.1
 
 gow 是基于gin源码的HTTP框架，在gin的基础上，做了更好的html模板封装和数据输出。可用于开发Web API和Web网站项目
 
@@ -9,7 +9,8 @@ gow 是基于gin源码的HTTP框架，在gin的基础上，做了更好的html�
 
 ```init
 1. 抛弃了gin的路由方式和实现；
-2. 
+2. 添加gzip middleware实现；
+3. 优化了html模板prod模式下的bug；
 ```
 
 ## 1. 项目地址
@@ -213,6 +214,9 @@ Session()
 
 //翻页相关
 DataPager()
+
+// gzip
+Gzip(level int, options ...Option) gow.HandlerFunc 
 ```
 
 ### 4.3 自定义一个middleware

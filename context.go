@@ -795,7 +795,7 @@ func (c *Context) XML(data interface{}) {
 // GetIP return k8s Cluster ip
 //	if ip=="" return "10.10.10.2"
 func (c *Context) GetIP() (ip string) {
-	//H5服务器端返传递的IP
+	//header传递传递的IP
 	ip = c.GetHeader("ip")
 	if ip == "" {
 		ip = c.GetHeader("X-Original-Forwarded-For")
@@ -812,7 +812,13 @@ func (c *Context) GetIP() (ip string) {
 	if ip == "" {
 		ip = "10.10.10.2"
 	}
-	return ip
+
+	ips := strings.Split(ip, ",")
+	if len(ips) > 0 {
+		ip = ips[0]
+	}
+
+	return strings.TrimSpace(ip)
 }
 
 // ClientIP get client ip address
