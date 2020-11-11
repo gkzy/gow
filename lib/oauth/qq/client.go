@@ -58,7 +58,7 @@ func (m *Client) GetAccessTokenByCode(code, redirectUrl string) (accessToken str
 	if accessData != nil && accessData.AccessToken != "" {
 		accessToken = accessData.AccessToken
 	} else {
-		err = fmt.Errorf("[QQ] 返回错误:%v", resp.ToString())
+		err = fmt.Errorf("[QQ] 返回错误:%v", resp.String())
 		return
 	}
 	return
@@ -83,7 +83,7 @@ func (m *Client) GetOpenIdAndUnionIdByAccessToken(accessToken string) (openId st
 		openId = openIdData.OpenId
 		unionId = openIdData.UnionId
 	} else {
-		err = fmt.Errorf("[QQ] 返回错误:%v", resp.ToString())
+		err = fmt.Errorf("[QQ] 返回错误:%v", resp.String())
 		return
 	}
 	return

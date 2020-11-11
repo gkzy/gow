@@ -23,17 +23,13 @@ type routerPathInfo struct {
 // RoutesInfo defines a routerPathInfo array.
 type RouterPath []routerPathInfo
 
-var rpm RouterPath
-
 // getMuxValue Returns the handle registered with the given path (key). The values of
 // wildcards are saved to a map.
 // If no handle can be found, a TSR (trailing slash redirect) recommendation is
 // made if a handle exists with an extra (without the) trailing slash for the
 // given path.
 func (n *node) getMuxValue(path string, params *Params, unescape bool) (value nodeValue) {
-	if rpm == nil {
-		rpm = getNodeRouterPathMap(n)
-	}
+	rpm := getNodeRouterPathMap(n)
 	routerPath, ok := getMatchPath(path, rpm, unescape)
 	if ok {
 		if params != nil {
