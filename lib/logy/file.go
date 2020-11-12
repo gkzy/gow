@@ -109,6 +109,9 @@ func NewFileWriter(opts ...FileWriterOptions) *FileWriter {
 	fw := &FileWriter{
 		FileWriterOptions: opt,
 	}
+	if fw.Dir[len(fw.Dir)-1:] != "/" {
+		fw.Dir = fw.Dir + "/"
+	}
 	fw.clearLog()
 	go fw.startTimer()
 	return fw
@@ -168,8 +171,9 @@ func (fw *FileWriter) clearLog() {
 	now := time.Now()
 	for _, item := range files {
 		modTime := item.ModTime
-		if modTime.Add(time.Hour * 24 * time.Duration(fw.StorageMaxDay-1)).Before(now) {
-			os.Remove(item.Name)
+		flag := modTime.Add(time.Hour * 24 * time.Duration(fw.StorageMaxDay-1)).Before(now)
+		if flag {
+			os.Remove(fmt.Sprintf("%s%s", fw.Dir, item.Name))
 		}
 	}
 }
