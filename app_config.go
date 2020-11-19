@@ -8,6 +8,7 @@ import (
 const (
 	defaultConfig     = "conf/app.conf"
 	defaultDevConfig  = "conf/dev.app.conf"
+	defaultTestConfig = "conf/test.app.conf"
 	defaultProdConfig = "conf/prod.app.conf"
 )
 
@@ -19,6 +20,8 @@ func InitConfig() {
 	switch runMode {
 	case DevMode:
 		fileName = defaultDevConfig
+	case TestMode:
+		fileName = defaultTestConfig
 	case ProdMode:
 		fileName = defaultProdConfig
 	default:
@@ -47,8 +50,9 @@ type AppConfig struct {
 // GetAppConfig 获取配置文件中的信息
 //	使用环境亦是：GOW_RUN_MODE
 //  默认使用conf/app.conf配置文件
-//  当环境变量 APP_RUN_MODE ="prod"时，使用 conf/prod.app.conf
 //  当环境变量 APP_RUN_MODE ="dev"时，使用 conf/dev.app.conf
+//  当环境变量 APP_RUN_MODE = "test"时，使用 conf/test.conf
+//  当环境变量 APP_RUN_MODE ="prod"时，使用 conf/prod.app.conf
 //  没有此环境变量时，使用conf/app.conf
 func GetAppConfig() *AppConfig {
 	return &AppConfig{
