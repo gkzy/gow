@@ -466,7 +466,7 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 	serveError(c, http.StatusNotFound, default404Body)
 }
 
-var mimePlain = []string{MIMEPlain}
+var mimePlain = []string{ContentPlain}
 
 func serveError(c *Context, code int, defaultMessage []byte) {
 	c.writermem.status = code

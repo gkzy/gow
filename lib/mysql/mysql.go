@@ -50,12 +50,13 @@ const (
 
 //DBConfig mysql配置文件
 type DBConfig struct {
-	Name     string //库名
-	User     string //登录名
-	Password string //密码
-	Host     string //主机
-	Port     int    //port
-	Debug    bool   //是否debug
+	Name            string //库名
+	User            string //登录名
+	Password        string //密码
+	Host            string //主机
+	Port            int    //port
+	Debug           bool   //是否debug
+	DisablePrepared bool   //是否disable prepared
 }
 
 //InitDefaultDB 单个数据库
@@ -95,6 +96,9 @@ func newORM(db *DBConfig) {
 	}
 
 	str := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", db.User, db.Password, db.Host, db.Port, db.Name) + "?charset=utf8mb4&parseTime=true&loc=Local"
+	if db.DisablePrepared {
+		str = str + "&interpolateParams=true"
+	}
 	for orm, err = gorm.Open(dbType, str); err != nil; {
 		logy.Error(fmt.Sprintf("[DB]-[%v] 连接异常:%v，正在重试: %v", db.Name, err, str))
 		time.Sleep(5 * time.Second)

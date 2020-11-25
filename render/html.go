@@ -1,6 +1,6 @@
 /*
 html render
-
+like beego html template
 */
 package render
 

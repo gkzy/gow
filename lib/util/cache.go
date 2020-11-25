@@ -96,7 +96,7 @@ func (m *MemoryCache) RemoveCache(key string) error {
 	if key == "" {
 		return errors.New("key is nil")
 	}
-	if m.cc == nil {
+		if m.cc == nil {
 		return errors.New("must init memory cache first")
 	}
 	m.cc.Delete(key)

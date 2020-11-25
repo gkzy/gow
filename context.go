@@ -20,17 +20,19 @@ import (
 )
 
 const (
-	MIMEJSON              = "application/json"
-	MIMEHTML              = "text/html"
-	MIMEXML               = "application/xml"
-	MIMEXML2              = "text/xml"
-	MIMEPlain             = "text/plain"
-	MIMEPOSTForm          = "application/x-www-form-urlencoded"
-	MIMEMultipartPOSTForm = "multipart/form-data"
-	MIMEPROTOBUF          = "application/x-protobuf"
-	MIMEMSGPACK           = "application/x-msgpack"
-	MIMEMSGPACK2          = "application/msgpack"
-	MIMEYAML              = "application/x-yaml"
+	ContentJSON              = "application/json; charset=utf-8"
+	ContentHTML              = "text/html; charset=utf-8"
+	ContentJavaScript        = "application/javascript; charset=utf-8"
+	ContentXML               = "application/xml; charset=utf-8"
+	ContentXML2              = "text/xml; charset=utf-8"
+	ContentPlain             = "text/plain; charset=utf-8"
+	ContentPOSTForm          = "application/x-www-form-urlencoded"
+	ContentMultipartPOSTForm = "multipart/form-data"
+	ContentPROTOBUF          = "application/x-protobuf"
+	ContentMSGPACK           = "application/x-msgpack"
+	ContentMSGPACK2          = "application/msgpack"
+	ContentYAML              = "application/x-yaml; charset=utf-8"
+	ContentDownload          = "application/octet-stream; charset=utf-8"
 )
 
 // Context gow context
@@ -108,7 +110,7 @@ func (c *Context) HandlerName() string {
 
 // FullPath returns a matched route full path. For not found routes
 // returns an empty string.
-//     router.GET("/user/:id", func(c *gin.Context) {
+//     router.GET("/user/{id}", func(c *gin.Context) {
 //         c.FullPath() == "/user/:id" // true
 //     })
 func (c *Context) FullPath() string {
@@ -661,7 +663,7 @@ func (c *Context) Render(statusCode int, name string, data interface{}) {
 		return
 	}
 	if err := c.engine.Render.Render(c.Writer, name, data); err != nil {
-		fmt.Println(err)
+		debugPrint("html render error:%v", err)
 	}
 }
 
@@ -697,7 +699,7 @@ func (c *Context) ServerString(code int, msg string) {
 	if code < 0 {
 		code = http.StatusOK
 	}
-	c.Writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	c.Writer.Header().Set("Content-Type", ContentPlain)
 	c.Status(code)
 	c.Writer.Write([]byte(msg))
 }
@@ -712,7 +714,7 @@ func (c *Context) ServerYAML(code int, data interface{}) {
 	if code < 0 {
 		code = http.StatusOK
 	}
-	c.Header("Content-Type", "application/x-yaml; charset=utf-8")
+	c.Header("Content-Type", ContentYAML)
 	c.Status(code)
 
 	bytes, err := yaml.Marshal(data)
@@ -733,7 +735,7 @@ func (c *Context) ServerJSON(code int, data interface{}) {
 	if code < 0 {
 		code = http.StatusOK
 	}
-	c.Header("Content-Type", "application/json; charset=utf-8")
+	c.Header("Content-Type", ContentJSON)
 	c.Status(code)
 	encoder := json.NewEncoder(c.Writer)
 	if c.engine.RunMode == DevMode {
@@ -755,7 +757,7 @@ func (c *Context) ServerJSONP(code int, callback string, data interface{}) {
 	if code < 0 {
 		code = http.StatusOK
 	}
-	c.Header("Content-Type", "application/javascript; charset=utf-8")
+	c.Header("Content-Type", ContentJavaScript)
 	c.Status(code)
 
 	bytes, err := json.Marshal(data)
@@ -763,7 +765,7 @@ func (c *Context) ServerJSONP(code int, callback string, data interface{}) {
 		c.Header("Content-Type", "")
 		c.ServerString(http.StatusServiceUnavailable, err.Error())
 	}
-	c.Writer.Write([]byte(callback + "{"))
+	c.Writer.Write([]byte(callback + "("))
 	c.Writer.Write(bytes)
 	c.Writer.Write([]byte(");"))
 }
@@ -778,7 +780,7 @@ func (c *Context) ServerXML(code int, data interface{}) {
 	if code < 0 {
 		code = http.StatusOK
 	}
-	c.Header("Content-Type", "application/xml; charset=utf-8")
+	c.Header("Content-Type", ContentXML)
 	c.Status(code)
 	encoder := xml.NewEncoder(c.Writer)
 	if err := encoder.Encode(data); err != nil {
@@ -877,7 +879,7 @@ func (c *Context) FileAttachment(filepath, filename string) {
 
 // Download download data
 func (c *Context) Download(data []byte) {
-	c.Header("Content-Type", "application/octet-stream; charset=utf-8")
+	c.Header("Content-Type", ContentDownload)
 	c.Writer.WriteHeader(http.StatusOK)
 	c.Writer.Write(data)
 }
