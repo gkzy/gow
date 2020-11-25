@@ -2,37 +2,7 @@ package gow
 
 import (
 	"github.com/gkzy/gow/lib/config"
-	"os"
 )
-
-const (
-	defaultConfig     = "conf/app.conf"
-	defaultDevConfig  = "conf/dev.app.conf"
-	defaultTestConfig = "conf/test.app.conf"
-	defaultProdConfig = "conf/prod.app.conf"
-)
-
-// InitConfig init config
-//		初始化配置文件，请在使用 gow/lib/config包之前，使用此方法
-func InitConfig() {
-	fileName := ""
-	runMode := os.Getenv("GOW_RUN_MODE")
-	switch runMode {
-	case DevMode:
-		fileName = defaultDevConfig
-	case TestMode:
-		fileName = defaultTestConfig
-	case ProdMode:
-		fileName = defaultProdConfig
-	default:
-		fileName = defaultConfig
-	}
-	if fileName == "" {
-		fileName = defaultConfig
-	}
-
-	config.InitLoad(fileName)
-}
 
 // AppConfig gow app 统一配置入口
 //		可以通过AppConfig完成统一的app基础配置

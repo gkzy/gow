@@ -15,7 +15,6 @@ import (
 const (
 	defaultMultipartMemory = 32 << 20 // 32 MB
 	defaultMode            = "dev"
-
 	DevMode                = "dev"
 	TestMode			   = "test"
 	ProdMode               = "prod"
