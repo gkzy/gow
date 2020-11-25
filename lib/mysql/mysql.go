@@ -95,10 +95,10 @@ func newORM(db *DBConfig) {
 		panic(fmt.Sprintf("[DB]-[%v] 数据库配置信息获取失败", db.Name))
 	}
 
-	str := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", db.User, db.Password, db.Host, db.Port, db.Name) + "?charset=utf8mb4&parseTime=true&loc=Local"
-	if db.DisablePrepared {
+	str := fmt.Sprintf(	if db.DisablePrepared {
 		str = str + "&interpolateParams=true"
-	}
+	}"%s:%s@tcp(%s:%d)/%s", db.User, db.Password, db.Host, db.Port, db.Name) + "?charset=utf8mb4&parseTime=true&loc=Local"
+
 	for orm, err = gorm.Open(dbType, str); err != nil; {
 		logy.Error(fmt.Sprintf("[DB]-[%v] 连接异常:%v，正在重试: %v", db.Name, err, str))
 		time.Sleep(5 * time.Second)

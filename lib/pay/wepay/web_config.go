@@ -16,13 +16,15 @@ type WxConfig struct {
 
 //NewWxConfig 一个新的配置信息
 //也可以自己组装
-func NewWxConfig(appId, mchId, apiKey, serverIP string, isSandbox bool) *WxConfig {
+func NewWxConfig(appId, mchId, apiKey, serverIP string, isSandbox bool, notifyUrl string, orderTime int) *WxConfig {
 	return &WxConfig{
 		AppId:     appId,
 		MchId:     mchId,
 		APIKey:    apiKey,
 		ServerIP:  serverIP,
 		isSandbox: isSandbox,
+		NotifyURL: notifyUrl,
+		OrderTime: orderTime,
 	}
 }
 
