@@ -3,6 +3,7 @@ package redis
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 // TestRedis_key
@@ -49,7 +50,6 @@ type User struct {
 }
 
 func TestRedis_Hash(t *testing.T) {
-
 	//init
 	conf := RDSConfig{
 		Host:      "192.168.0.197",
@@ -69,32 +69,10 @@ func TestRedis_Hash(t *testing.T) {
 	redis := GetRDSCommon()
 	key := "user:1"
 
-	ok,err:=redis.SETNX(key, 123)
+	ok,err:=redis.SetEX(key, "key value",int64((time.Hour * 24).Seconds()))
 	if err != nil {
 		t.Fatal(err)
 	}
 	fmt.Println(ok)
-	//mp := make(map[float64]interface{}, 0)
-	//
-	//mp[1] = "zituocn"
-	//mp[2] = "新月却泽滨"
-	//mp[3] = "这是一个很长的名字"
-	//
-	//err = redis.SetZSet(key, mp)
-	//if err != nil {
-	//	t.Fatal(err)
-	//}
 
-	//count, err := redis.GetZSetCount(key)
-	//if err != nil {
-	//	t.Fatal(err)
-	//}
-	//fmt.Println(count)
-
-	//names, err := redis.GetZSetWithScoreToStrings(key, 0, 0)
-	//if err != nil {
-	//	t.Fatal(err)
-	//}
-	//
-	//fmt.Println(names)
 }

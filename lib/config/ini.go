@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/gkzy/gow/lib/logy"
 	ini "github.com/go-ini/ini"
 	"os"
 	"strings"
@@ -50,7 +51,7 @@ func InitLoad(fileName string) {
 	var err error
 	cfg, err = ini.Load(fileName)
 	if err != nil {
-		panic("Failed to read configuration file：" + fileName)
+		logy.Error("Failed to read configuration file：" + fileName)
 	}
 }
 

@@ -28,7 +28,8 @@ const (
 )
 
 const (
-	LevelDebug = iota
+	levelTest = iota
+	LevelDebug
 	LevelInfo
 	LevelNotice
 	LevelWarn
@@ -38,6 +39,7 @@ const (
 )
 
 var levels = []string{
+	"[T]",
 	"[D]",
 	"[I]",
 	"[N]",

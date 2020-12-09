@@ -1,3 +1,10 @@
+/*
+基于context的扩展
+处理了：
+	自定义了json输出格式
+	常用的翻页处理
+sam
+*/
 package gow
 
 import (
@@ -28,7 +35,7 @@ type Pager struct {
 	PageCount int64 `json:"pagecount"`
 }
 
-// DataPager middlewares
+// DataPager middleware
 //	实现分页参数的处理
 func DataPager() HandlerFunc {
 	return func(c *Context) {
@@ -48,10 +55,9 @@ func DataPager() HandlerFunc {
 	}
 }
 
-// DataJSON DataJSON json data
-//	response format json
-//	c.DataJSON(1,"lost param")
-func (c *Context) DataJSON(args ...interface{}) {
+// ServerDataJSON json format response
+//	ex:c.ServerDataJSON(401,1,"Unauthorized")
+func (c *Context) ServerDataJSON(statusCode int, args ...interface{}) {
 	var (
 		err   error
 		pager *Pager
@@ -96,8 +102,15 @@ func (c *Context) DataJSON(args ...interface{}) {
 		Time: int(time.Now().Unix()),
 		Body: body,
 	}
-	c.JSON(&resp)
+	c.ServerJSON(statusCode, &resp)
 	return
+}
+
+// DataJSON DataJSON json data
+//	response format json
+//	c.DataJSON(1,"lost param")
+func (c *Context) DataJSON(args ...interface{}) {
+	c.ServerDataJSON(200, args)
 }
 
 // DecodeJSONBody request body to struct or map

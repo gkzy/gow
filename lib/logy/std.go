@@ -32,7 +32,7 @@ func NewMutexWriter(w io.Writer) Writer {
 var std *Logger
 
 func init() {
-	std = NewLogger(NewMutexWriter(os.Stdout), LstdFlags, LevelDebug)
+	std = NewLogger(NewMutexWriter(os.Stdout), LstdFlags, levelTest)
 	std.SetCallDepth(std.CallDepth() + 1)
 }
 
