@@ -83,8 +83,9 @@ func mathPath(path string) (regPath string, keys []string) {
 	if strings.Contains(regPath, "//") {
 		regPath = strings.ReplaceAll(regPath, "//", "/")
 	}
-	regPath = regPath[:len(regPath)-1]
-
+	if regPath != "/" {
+		regPath = regPath[:len(regPath)-1]
+	}
 	return regPath, keys
 }
 
