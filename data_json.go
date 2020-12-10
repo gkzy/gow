@@ -110,7 +110,7 @@ func (c *Context) ServerDataJSON(statusCode int, args ...interface{}) {
 //	response format json
 //	c.DataJSON(1,"lost param")
 func (c *Context) DataJSON(args ...interface{}) {
-	c.ServerDataJSON(200, args)
+	c.ServerDataJSON(200, args...)
 }
 
 // DecodeJSONBody request body to struct or map
