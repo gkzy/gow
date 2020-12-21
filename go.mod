@@ -9,7 +9,7 @@ require (
 	github.com/clbanning/mxj v1.8.4
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-ini/ini v1.61.0
-	github.com/gomodule/redigo v1.8.2
+	github.com/gomodule/redigo v1.8.3
 	github.com/imroc/req v0.3.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/mattn/go-isatty v0.0.12
@@ -20,7 +20,7 @@ require (
 	github.com/tideland/golib v4.24.2+incompatible // indirect
 	github.com/tideland/gorest v2.15.5+incompatible
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
-	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
+	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 	google.golang.org/grpc v1.32.0
 	gopkg.in/yaml.v2 v2.2.2
 )

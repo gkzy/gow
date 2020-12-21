@@ -71,15 +71,10 @@ func NewWriter(w io.Writer) Writer {
 //===========================logger======================
 
 type LogData struct {
-	Prefix     string `json:"prefix"`      // log prefix
-	Level      int    `json:"level"`       // log level
-	Msg        string `json:"msg"`         // msg
-	Method     string `json:"method"`      // request method
-	UserAgent  string `json:"user_agent"`  // request useragent
-	StatusCode int    `json:"status_code"` // http status code
-	Path       string `json:"path"`        // request path
-	IP         string `json:"ip"`          // client ip
-	Created    int64  `json:"created"`     // timestamp
+	Prefix  string    `json:"prefix"`  // log prefix
+	Level   int       `json:"level"`   // log level
+	Msg     string    `json:"msg"`     // msg
+	Created time.Time `json:"created"` // time
 }
 
 type Logger struct {
