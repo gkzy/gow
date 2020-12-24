@@ -177,8 +177,8 @@ func (m *WxAPI) Notify(req *http.Request) (ret *NotifyRet, outTradeNo, tradeNo, 
 }
 
 //OrderQuery 订单查询
-//返回是否成功，和错误信息
-func (m *WxAPI) OrderQuery(transactionID, outTradeNo string) (state bool, err error) {
+//	返回是否成功，和错误信息
+func (m *WxAPI) OrderQuery(transactionID, outTradeNo string) (state bool, tradeNo string, err error) {
 	if transactionID == "" && outTradeNo == "" {
 		err = fmt.Errorf("[transactionID]与[outTradeNo]不能同时为空")
 		return
@@ -195,6 +195,9 @@ func (m *WxAPI) OrderQuery(transactionID, outTradeNo string) (state bool, err er
 	delete(params, "appid")
 	delete(params, "mch_id")
 	delete(params, "sign")
+
+	//返回有可能存在的tradeNo
+	tradeNo = params.GetString("transaction_id")
 
 	if params.GetString("return_code") == "SUCCESS" && params.GetString("trade_state") == "SUCCESS" {
 		state = true

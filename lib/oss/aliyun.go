@@ -19,7 +19,7 @@ type AliClient struct {
 }
 
 //NewAliClient NewAliClient
-func (c *AliClient) NewAliClient(accessKeyId, secret, endPoint, bucketName, serverUrl string) *AliClient {
+func NewAliClient(accessKeyId, secret, endPoint, bucketName, serverUrl string) *AliClient {
 	//末尾添加/
 	if len(serverUrl) > 0 && serverUrl[len(serverUrl)-1:] != "/" {
 		serverUrl = serverUrl + "/"
