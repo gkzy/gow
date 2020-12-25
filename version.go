@@ -2,7 +2,7 @@ package gow
 
 const (
 	// gow version
-	version = "v0.3.6"
+	version = "v0.3.7"
 	logo    = `   ____   ______  _  __
   / ___\ /  _ \ \/ \/ /
  / /_/  >  <_> )     / 

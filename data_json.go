@@ -32,7 +32,7 @@ type Pager struct {
 	Limit     int64 `json:"-"`
 	Offset    int64 `json:"-"`
 	Count     int64 `json:"count"`
-	PageCount int64 `json:"pagecount"`
+	PageCount int64 `json:"page_count"`
 }
 
 // DataPager middleware
