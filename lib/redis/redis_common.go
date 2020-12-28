@@ -9,17 +9,14 @@ type RDSCommon struct {
 	client *redis.Pool
 }
 
+// Pool
+func (m *RDSCommon) Pool(p *redis.Pool) {
+	m.client = p
+}
+
 // GetRDSCommon return redis func
 func GetRDSCommon() *RDSCommon {
-	if redisClient == nil {
-		panic("[RDS] 连接未初始化")
-	}
-	if redisClient.Get() == nil {
-		panic("[RDS] 连接redis失败")
-	}
-	return &RDSCommon{
-		client: redisClient,
-	}
+	return cmd
 }
 
 /************************************/
@@ -114,6 +111,9 @@ func (m *RDSCommon) GetInt64(key string) (v int64, err error) {
 
 // SetString 设置key的值为v
 func (m *RDSCommon) SetString(key string, v interface{}) (ok bool, err error) {
+	if m.client==nil{
+		return false,fmt.Errorf("缺少redis连接")
+	}
 	rc := m.client.Get()
 	defer rc.Close()
 	result, err := redis.String(rc.Do("SET", redis.Args{}.Add(key).Add(v)...))

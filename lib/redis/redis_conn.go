@@ -23,6 +23,7 @@ val,err:=rc.Get(key)
 package redis
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"time"
@@ -38,10 +39,7 @@ type RDSConfig struct {
 	DB        int
 }
 
-var (
-	//共用的redis.Pool
-	redisClient *redis.Pool
-)
+var cmd = new(RDSCommon)
 
 //InitRDSClient init config
 func InitRDSClient(rdc *RDSConfig) (err error) {
@@ -53,34 +51,56 @@ func InitRDSClient(rdc *RDSConfig) (err error) {
 		err = fmt.Errorf("[RDS] 没有配置主机或端口")
 		return
 	}
-	redisClient = &redis.Pool{
+
+	cmd.Pool(newRedisPools(rdc))
+
+	return
+}
+
+
+// ====================private====================
+
+// newRedisPools
+func newRedisPools(rdc *RDSConfig) *redis.Pool {
+	p := &redis.Pool{
 		MaxIdle:     rdc.MaxIdle,
 		MaxActive:   rdc.MaxActive,
-		IdleTimeout: 5 * time.Second,
+		IdleTimeout: 30 * time.Second,
+		Wait:        true,
 		Dial: func() (conn redis.Conn, err error) {
-			conn, err = redis.Dial("tcp", fmt.Sprintf("%s:%d", rdc.Host, rdc.Port))
-			if conn != nil {
-				if len(rdc.Password) != 0 {
-					if _, err := conn.Do("AUTH", rdc.Password); err != nil {
-						conn.Close()
-					}
-				}
-				if _, err := conn.Do("SELECT", rdc.DB); err != nil {
-					conn.Close()
-				}
-			}
-			return
+			return setDialog(rdc)
 		},
 	}
 
-	//ping一次，检测可用性
-	rc := redisClient.Get()
+	rc := p.Get()
 	defer rc.Close()
-	_, err = rc.Do("PING")
+	_, err := rc.Do("PING")
 	if err != nil {
-		err = fmt.Errorf("[RDS] redis 初始化失败 %v", err)
-		return
+		panic(fmt.Sprintf("[RDS] redis 初始化失败 %v", err))
+		return nil
+	}
+	return p
+}
+
+// setDialog
+func setDialog(rdc *RDSConfig) (redis.Conn, error) {
+	conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%d", rdc.Host, rdc.Port))
+	if err != nil {
+		return nil, err
 	}
 
-	return
+	if conn == nil {
+		return nil, errors.New("连接redis错误")
+	}
+
+	if len(rdc.Password) != 0 {
+		if _, err := conn.Do("AUTH", rdc.Password); err != nil {
+			conn.Close()
+		}
+	}
+	if _, err := conn.Do("SELECT", rdc.DB); err != nil {
+		conn.Close()
+	}
+
+	return conn, nil
 }
