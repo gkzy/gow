@@ -2,6 +2,7 @@ package pdf
 
 import (
 	"fmt"
+	"github.com/gkzy/gow/lib/logy"
 	"github.com/gkzy/gow/lib/pdf/core"
 	"io"
 	"net/http"
@@ -90,10 +91,10 @@ func NewImageFromServer(path string, pdf *core.Report) *Image {
 	imageType, _ := GetImageType(picturePath)
 	if imageType == "png" {
 		index := strings.LastIndex(picturePath, ".")
-		tempFilePath = path[0:index+1] + ".jpeg"
+		tempFilePath = path[0:index+1] + "jpeg"
 		err := ConvertPNG2JPEG(picturePath, tempFilePath)
 		if err != nil {
-			panic(err)
+			logy.Errorf("[PDF]转换图片出错:%v", err)
 		}
 		picturePath = tempFilePath
 	}
