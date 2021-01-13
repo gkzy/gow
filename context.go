@@ -694,6 +694,15 @@ func (c *Context) HTML(name string, data ...interface{}) {
 	c.ServerHTML(http.StatusOK, name)
 }
 
+// ServerHTMLString write html string into response body
+func (c *Context) ServerHTMLString(code int,msg string){
+	if code < 0 {
+		code = http.StatusOK
+	}
+	c.Writer.Header().Set("Content-Type", ContentHTML)
+	c.Status(code)
+	c.Writer.Write([]byte(msg))
+}
 // ServerString write string into the response body
 func (c *Context) ServerString(code int, msg string) {
 	if code < 0 {
