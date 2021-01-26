@@ -352,7 +352,6 @@ func Logger() HandlerFunc {
 				param.Path,
 				param.ErrorMessage,
 			)
-			logy.SetFlags(logy.Ldate | logy.Ltime | logy.Llevel)
 			logy.Info(info)
 		}
 	}
