@@ -18,6 +18,7 @@ type routerPathInfo struct {
 	handlers HandlersChain
 	params   *Params
 	tsr      bool
+	nType    nodeType
 }
 
 // RoutesInfo defines a routerPathInfo array.
@@ -66,19 +67,29 @@ func mathPath(path string) (regPath string, keys []string) {
 				n = strings.ReplaceAll(n, ":int", "")
 				replaceRegexp = intRegexp
 			}
+
 			// static /static/*filepath
 			if strings.Contains(n, "*filepath") {
 				n = strings.ReplaceAll(n, "*filepath", string(starRegexp))
 				replaceRegexp = starRegexp
 			}
+
+			// /*action
+			if strings.Contains(n, "*action") {
+				n = strings.ReplaceAll(n, "*action", string(starRegexp))
+				replaceRegexp = starRegexp
+			}
 			key := wildcardRegexp.FindAllString(n, -1)
+
 			keys = append(keys, key...)
 			nPath = string(wildcardRegexp.ReplaceAll([]byte(n), replaceRegexp))
+
 		} else {
 			nPath = n
 		}
 		regPath = regPath + nPath + "/"
 	}
+
 	//去掉group时可能产生的//
 	if strings.Contains(regPath, "//") {
 		regPath = strings.ReplaceAll(regPath, "//", "/")
@@ -101,7 +112,7 @@ func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, b
 		if path == regPath {
 			return &p, true
 		} else {
-			// all match
+			// all reg match
 			ok, _ := regexp.MatchString("^"+regPath+"$", path)
 			if ok {
 				valueRegexp := regexp.MustCompile(regPath)
@@ -138,6 +149,7 @@ func getNodeRouterPath(path string, rp RouterPath, root *node) RouterPath {
 			Path:     strings.ToLower(path),
 			fullPath: root.fullPath,
 			handlers: root.handlers,
+			nType:    root.nType,
 		})
 	}
 	for _, child := range root.children {
