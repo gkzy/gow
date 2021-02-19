@@ -21,3 +21,13 @@ type NotifyRet struct {
 	ReturnCode string   `xml:"return_code"`
 	ReturnMsg  string   `xml:"return_msg"`
 }
+
+//AppletPayResp 微信小程序支付时，返回的结构体
+//包括prepayID和Sign等其他信息
+type AppletPayResp struct {
+	Timestamp string `json:"timeStamp"` //时间
+	NonceStr  string `json:"nonceStr"`  //随机字串
+	Package   string `json:"package"`   //package
+	SignType  string `json:"signType"`
+	Sign      string `json:"paySign"` //签名
+}
