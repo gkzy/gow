@@ -1,21 +1,21 @@
 package config
 
 import (
+	"github.com/gkzy/gini"
 	"github.com/gkzy/gow/lib/logy"
-	ini "github.com/go-ini/ini"
 	"os"
 	"strings"
 )
 
 var (
-	cfg = ini.Empty()
+	ini = gini.New("conf/")
 )
 
 const (
-	defaultConfig     = "conf/app.conf"
-	defaultDevConfig  = "conf/dev.app.conf"
-	defaultTestConfig = "conf/test.app.conf"
-	defaultProdConfig = "conf/prod.app.conf"
+	defaultConfig     = "app.conf"
+	defaultDevConfig  = "dev.app.conf"
+	defaultTestConfig = "test.app.conf"
+	defaultProdConfig = "prod.app.conf"
 
 	defaultMode = "dev"
 	DevMode     = "dev"
@@ -48,11 +48,15 @@ func initConfig() {
 //	  config.InitLoad("conf/my.ini")
 //	  config.GetString("key")
 func InitLoad(fileName string) {
-	var err error
-	cfg, err = ini.Load(fileName)
+	err := ini.Load(fileName)
 	if err != nil {
-		logy.Error("Failed to read configuration file：" + fileName)
+		logy.Error("failed to read configuration file：" + fileName)
 	}
+}
+
+// Reload
+func Reload() error {
+	return ini.ReLoad()
 }
 
 // DefaultString get default string
@@ -67,7 +71,7 @@ func DefaultString(key, def string) string {
 // GetString get string
 //	 config.GetString("prov")
 func GetString(key string) string {
-	return getKey(key).String()
+	return ini.SectionGet(getSplitSectionKey(key))
 }
 
 //DefaultInt get default int
@@ -82,7 +86,7 @@ func DefaultInt(key string, def int) int {
 // GetInt  get int
 //	config.GetInt("prov_id)
 func GetInt(key string) (int, error) {
-	return getKey(key).Int()
+	return ini.SectionInt(getSplitSectionKey(key))
 }
 
 //DefaultInt DefaultInt
@@ -94,7 +98,7 @@ func DefaultInt64(key string, def int64) int64 {
 }
 
 func GetInt64(key string) (int64, error) {
-	return getKey(key).Int64()
+	return ini.SectionInt64(getSplitSectionKey(key))
 }
 
 //DefaultInt DefaultInt
@@ -106,12 +110,12 @@ func DefaultFloat(key string, def float64) float64 {
 }
 
 func GetFloat(key string) (float64, error) {
-	return getKey(key).Float64()
+	return ini.SectionFloat64(getSplitSectionKey(key))
 }
 
 //GetInt64
 func GetBool(key string) (bool, error) {
-	return getKey(key).Bool()
+	return ini.SectionBool(getSplitSectionKey(key)), nil
 }
 
 //DefaultBool DefaultBool
@@ -124,22 +128,44 @@ func DefaultBool(key string, def bool) bool {
 
 // Keys 获取section下的所有keys
 func Keys(section string) []string {
-	return cfg.Section(section).KeyStrings()
+	keys := ini.GetKeys(section)
+	ss := make([]string, 0)
+	for _, item := range keys {
+		ss = append(ss, item.K)
+	}
+	return ss
 }
 
-//getKey getKey
-func getKey(key string) *ini.Key {
-	if key == "" {
-		return nil
+// getSplitSectionKey use gini lib
+func getSplitSectionKey(name string) (section, key string) {
+	if name == "" {
+		return
 	}
-	sp := strings.Split(key, "::")
+	sp := strings.Split(name, "::")
 	switch len(sp) {
 	case 1:
-		return cfg.Section("").Key(key)
+		return "", sp[0]
 	case 2:
-		return cfg.Section(sp[0]).Key(sp[1])
+		return sp[0], sp[1]
 	default:
-		return nil
+		return
 	}
 
 }
+
+////getKey getKey
+//func getKey(key string) *ini.Key {
+//	if key == "" {
+//		return nil
+//	}
+//	sp := strings.Split(key, "::")
+//	switch len(sp) {
+//	case 1:
+//		return cfg.Section("").Key(key)
+//	case 2:
+//		return cfg.Section(sp[0]).Key(sp[1])
+//	default:
+//		return nil
+//	}
+//
+//}

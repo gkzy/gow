@@ -8,7 +8,7 @@ require (
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/clbanning/mxj v1.8.4
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/go-ini/ini v1.61.0
+	github.com/gkzy/gini v0.0.4
 	github.com/gomodule/redigo v1.8.3
 	github.com/imroc/req v0.3.0
 	github.com/jinzhu/gorm v1.9.16
