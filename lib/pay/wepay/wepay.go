@@ -147,7 +147,49 @@ func (m *WxAPI) JSAPITrade(body, outTradeNo string, totalFee int, openID, client
 		err = fmt.Errorf("返回prepay_id失败")
 		return
 	}
+	return
+}
 
+//AppletTrade 小程序支付
+//需要传入公众号对应用户的openID
+func (m *WxAPI) AppletTrade(body, outTradeNo string, totalFee int, openID, clientIP string) (ret *AppletPayResp, err error) {
+	params, err := m.UnifiedOrder(body, outTradeNo, totalFee, openID, clientIP, TradeTypeJSAPI)
+	if err != nil {
+		return
+	}
+
+	errCode := params.GetString("err_code")
+	if errCode == "PARAM_ERROR" {
+		err = fmt.Errorf(params.GetString("err_code_desc"))
+		return
+	}
+
+	prepayID := strings.TrimSpace(params.GetString("prepay_id"))
+	if len(prepayID) == 0 {
+		err = fmt.Errorf("返回prepay_id失败")
+		return
+	}
+
+	//时间戳
+	timestamp := time.Now().Unix()
+	//随机值
+	nonceStr := makeNonceStr(20)
+	pg := fmt.Sprintf("prepay_id=%v", prepayID)
+	p := make(Params)
+	p.SetString("appId", m.Client.AppId)
+	p.SetString("package", pg)
+	p.SetString("nonceStr", nonceStr)
+	p.SetString("timeStamp", fmt.Sprintf("%d", timestamp))
+	p.SetString("signType", m.Client.signType)
+	//计算并返回签名
+	sign := m.Client.Sign(p)
+	ret = &AppletPayResp{
+		Timestamp: fmt.Sprintf("%d", timestamp),
+		NonceStr:  nonceStr,
+		Package:   pg,
+		SignType:  m.Client.signType,
+		Sign:      sign,
+	}
 	return
 }
 
