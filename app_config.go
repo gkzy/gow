@@ -1,8 +1,6 @@
 package gow
 
-import (
-	"github.com/gkzy/gow/lib/config"
-)
+import "github.com/gkzy/gow/lib/config"
 
 // AppConfig gow app 统一配置入口
 //		可以通过AppConfig完成统一的app基础配置
