@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/gkzy/gini"
 	"github.com/gkzy/gow/lib/logy"
 	"os"
@@ -50,7 +51,7 @@ func initConfig() {
 func InitLoad(fileName string) {
 	err := ini.Load(fileName)
 	if err != nil {
-		logy.Warn("failed to read configuration file：" + fileName)
+		logy.Warn(fmt.Sprintf("failed to read configuration file：%v err:%v", fileName, err.Error()))
 	}
 }
 
