@@ -50,13 +50,19 @@ func initConfig() {
 func InitLoad(fileName string) {
 	err := ini.Load(fileName)
 	if err != nil {
-		logy.Error("failed to read configuration file：" + fileName)
+		logy.Warn("failed to read configuration file：" + fileName)
 	}
 }
 
 // Reload
 func Reload() error {
 	return ini.ReLoad()
+}
+
+// WriteFile write an new file
+//	need filename and content
+func WriteFile(filename, content string) (n int, err error) {
+	return ini.WriteFile(filename, content)
 }
 
 // DefaultString get default string
@@ -152,20 +158,3 @@ func getSplitSectionKey(name string) (section, key string) {
 	}
 
 }
-
-////getKey getKey
-//func getKey(key string) *ini.Key {
-//	if key == "" {
-//		return nil
-//	}
-//	sp := strings.Split(key, "::")
-//	switch len(sp) {
-//	case 1:
-//		return cfg.Section("").Key(key)
-//	case 2:
-//		return cfg.Section(sp[0]).Key(sp[1])
-//	default:
-//		return nil
-//	}
-//
-//}
