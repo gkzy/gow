@@ -22,6 +22,8 @@ func TestINI_GetKey(t *testing.T) {
 	fmt.Printf("i1 type=%T,i1=%v \n", i1, i1)
 	fmt.Printf("f1 type=%T,f1=%v \n", f1, f1)
 	fmt.Printf("b1, type=%T,b1,=%v \n", b1, b1)
+
+	InitLoad("test.app.conf")
 }
 
 //// TestINI_File 指定文件

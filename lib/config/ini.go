@@ -51,7 +51,7 @@ func initConfig() {
 func InitLoad(fileName string) {
 	err := ini.Load(fileName)
 	if err != nil {
-		logy.Warn(fmt.Sprintf("failed to read configuration file：%v err:%v", fileName, err.Error()))
+		logy.Warn(fmt.Sprintf("failed to read configuration file：%v  err:%v", fileName, err.Error()))
 	}
 }
 
