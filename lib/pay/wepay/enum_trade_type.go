@@ -15,4 +15,7 @@ const (
 
 	//TradeTypeH5 非微信浏览器的H5唤起支付
 	TradeTypeH5 TradeType = "MWEB"
+
+	//TradeTypeApplet 小程序
+	TradeTypeApplet TradeType = ""
 )
