@@ -1,9 +1,8 @@
-package gzip
+package gow
 
 import (
 	"compress/gzip"
 	"fmt"
-	"github.com/gkzy/gow"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -35,7 +34,7 @@ func newGzipHandler(level int, options ...Option) *gzipHandler {
 	return handler
 }
 
-func (g *gzipHandler) Handle(c *gow.Context) {
+func (g *gzipHandler) Handle(c *Context) {
 	if fn := g.DecompressFn; fn != nil && c.Request.Header.Get("Content-Encoding") == "gzip" {
 		fn(c)
 	}

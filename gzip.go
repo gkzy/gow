@@ -1,9 +1,6 @@
-package gzip
+package gow
 
-import (
-	"compress/gzip"
-	"github.com/gkzy/gow"
-)
+import "compress/gzip"
 
 const (
 	BestCompression    = gzip.BestCompression
@@ -14,12 +11,12 @@ const (
 
 // Gzip middleware
 //	1~9 Compress level
-func Gzip(level int, options ...Option) gow.HandlerFunc {
+func Gzip(level int, options ...Option) HandlerFunc {
 	return newGzipHandler(level, options...).Handle
 }
 
 type gzipWriter struct {
-	gow.ResponseWriter
+	ResponseWriter
 	writer *gzip.Writer
 }
 

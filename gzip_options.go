@@ -1,8 +1,7 @@
-package gzip
+package gow
 
 import (
 	"compress/gzip"
-	"github.com/gkzy/gow"
 	"net/http"
 	"regexp"
 	"strings"
@@ -21,7 +20,7 @@ type Options struct {
 	ExcludedExtensions   ExcludedExtensions
 	ExcludedPaths        ExcludedPaths
 	ExcludedPathesRegexs ExcludedPathesRegexs
-	DecompressFn         func(c *gow.Context)
+	DecompressFn         func(c *Context)
 }
 
 type Option func(*Options)
@@ -44,7 +43,7 @@ func WithExcludedPathsRegexs(args []string) Option {
 	}
 }
 
-func WithDecompressFn(decompressFn func(c *gow.Context)) Option {
+func WithDecompressFn(decompressFn func(c *Context)) Option {
 	return func(o *Options) {
 		o.DecompressFn = decompressFn
 	}
@@ -101,7 +100,7 @@ func (e ExcludedPathesRegexs) Contains(requestURI string) bool {
 }
 
 // DefaultDecompressHandle
-func DefaultDecompressHandle(c *gow.Context) {
+func DefaultDecompressHandle(c *Context) {
 	if c.Request.Body == nil {
 		return
 	}

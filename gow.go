@@ -16,7 +16,7 @@ const (
 	defaultMultipartMemory = 32 << 20 // 32 MB
 	defaultMode            = "dev"
 	DevMode                = "dev"
-	TestMode			   = "test"
+	TestMode               = "test"
 	ProdMode               = "prod"
 	defaultViews           = "views"
 	defaultStatic          = "static"
@@ -71,6 +71,7 @@ type Engine struct {
 	viewsPath  string
 	staticPath string
 	sessionOn  bool
+	gzipOn     bool
 
 	RouterGroup
 	RedirectTrailingSlash  bool
@@ -156,10 +157,15 @@ func (engine *Engine) SetAppConfig(app *AppConfig) {
 		engine.AutoRender = app.AutoRender
 		engine.httpAddr = app.HTTPAddr
 		engine.sessionOn = app.SessionOn
+		engine.gzipOn = app.GzipOn
 		// session on
 		if engine.sessionOn {
 			InitSession()
 			engine.Use(Session())
+		}
+		debugPrint("%v", engine.gzipOn)
+		if engine.gzipOn {
+			engine.Use(Gzip(DefaultCompression))
 		}
 	}
 }
