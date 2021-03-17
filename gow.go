@@ -163,7 +163,6 @@ func (engine *Engine) SetAppConfig(app *AppConfig) {
 			InitSession()
 			engine.Use(Session())
 		}
-		debugPrint("%v", engine.gzipOn)
 		if engine.gzipOn {
 			engine.Use(Gzip(DefaultCompression))
 		}
