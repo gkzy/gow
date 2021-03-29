@@ -202,6 +202,26 @@ func (m *RDSCommon) GetHashAll(key string, obj interface{}) (err error) {
 	return
 }
 
+// GetHash get hash all to map
+func (m *RDSCommon) GetHashAll2Map(key string)(map[string]string,error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	return redis.StringMap(rc.Do("HGETALL", key))
+}
+
+// HMGET key field [field ...]
+// 返回哈希表 key 中，一个或多个给定域的值。
+// 如果给定的域不存在于哈希表，那么返回一个 nil 值。
+func (m *RDSCommon) GetHashfields(key string, fields []string) ([]string, error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	args := redis.Args{}.Add(key)
+	for _, value := range fields {
+		args = args.Add(value)
+	}
+	return redis.Strings(rc.Do("HMGET",args...))
+}
+
 //HashFieldExists hash某个field是否存在
 func (m *RDSCommon) HashFieldExists(key, field string) (bool, error) {
 	rc := m.client.Get()
