@@ -202,6 +202,25 @@ func (m *RDSCommon) GetHashAll(key string, obj interface{}) (err error) {
 	return
 }
 
+//GetHashValue get hash all
+func (m *RDSCommon) GetHashValue(key string) (data []string,err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	var v []interface{}
+	v, err = redis.Values(rc.Do("HGETALL", key))
+	if len(v) == 0 {
+		return nil,fmt.Errorf("未查询到数据")
+	}
+	if err = redis.ScanSlice(v, &data); err != nil {
+		return
+	}
+	if len(data) == 0 {
+		return data, fmt.Errorf("未查询到数据")
+	}
+	return data,nil
+}
+
+
 // GetHash get hash all to map
 func (m *RDSCommon) GetHashAll2Map(key string)(map[string]string,error) {
 	rc := m.client.Get()
