@@ -241,6 +241,7 @@ func (pool *Pool) Close() {
 	}()
 }
 
+// Close
 func (client *Client) Close() {
 	go func() {
 		pool := client.pool
@@ -262,10 +263,13 @@ func (client *Client) Close() {
 	}()
 }
 
+// Destroy
 func (client *Client) Destroy() {
 	if client.ClientConn != nil {
 		client.ClientConn.Close()
-		atomic.AddInt32(&client.pool.connCnt, -1)
+		if client.pool != nil {
+			atomic.AddInt32(&client.pool.connCnt, -1)
+		}
 	}
 	client.ClientConn = nil
 	client.pool = nil
