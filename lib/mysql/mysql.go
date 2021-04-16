@@ -59,7 +59,7 @@ type DBConfig struct {
 	DisablePrepared bool   //是否disable prepared
 }
 
-//InitDefaultDB 单个数据库
+//InitDefaultDB init single db
 func InitDefaultDB(db *DBConfig) (err error) {
 	if db == nil {
 		err = fmt.Errorf("没有需要init的DB")
@@ -71,7 +71,7 @@ func InitDefaultDB(db *DBConfig) (err error) {
 	return
 }
 
-//InitDB InitDB
+//InitDB init multiple db
 func InitDB(list []*DBConfig) (err error) {
 	if len(list) == 0 {
 		err = fmt.Errorf("没有需要init的DB")
@@ -118,7 +118,7 @@ func GetORM() *gorm.DB {
 	return m
 }
 
-//GetORM GetORM
+//GetORMByName get orm by name
 func GetORMByName(name string) *gorm.DB {
 	m, ok := dbs[name]
 	if !ok {

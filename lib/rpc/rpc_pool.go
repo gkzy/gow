@@ -3,6 +3,7 @@
 sam
 
 */
+
 package rpc
 
 import (
@@ -32,7 +33,8 @@ var (
 	ErrorGetTimeout = "getting connection client timeout from pool"
 	//ErrorDialConn 创建连接时发生错误
 	ErrorDialConn = "dialing connection error"
-	// ErrPoolIsClosed 连接池已关闭
+
+	// ErrorPoolIsClosed 连接池已关闭
 	ErrorPoolIsClosed = "pool is closed"
 )
 
@@ -60,7 +62,7 @@ type Option struct {
 	Mode int
 }
 
-// Factor
+// Factor factor func
 type Factor func() (*grpc.ClientConn, error)
 
 // Pool 连接池
@@ -241,7 +243,7 @@ func (pool *Pool) Close() {
 	}()
 }
 
-// Close
+// Close close conn
 func (client *Client) Close() {
 	go func() {
 		pool := client.pool
@@ -263,7 +265,7 @@ func (client *Client) Close() {
 	}()
 }
 
-// Destroy
+// Destroy destroy conn
 func (client *Client) Destroy() {
 	if client.ClientConn != nil {
 		client.ClientConn.Close()

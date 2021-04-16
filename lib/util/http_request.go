@@ -4,6 +4,7 @@ http client
 返回string，如果需要到struct，需要自己反序列化
 
 */
+
 package util
 
 import (
@@ -32,7 +33,7 @@ func HttpGet(url string) (ret string, err error) {
 	if err != nil {
 		return
 	}
-	ret,err = resp.ToString()
+	ret, err = resp.ToString()
 	if err != nil {
 		return
 	}
@@ -54,7 +55,7 @@ func HttpPost(url string, param req.Param) (ret string, err error) {
 	if err != nil {
 		return
 	}
-	ret,err = resp.ToString()
+	ret, err = resp.ToString()
 	if err != nil {
 		return
 	}

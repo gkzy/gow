@@ -44,7 +44,7 @@ func Str2html(str string) template.HTML {
 	return template.HTML(str)
 }
 
-// HTML2str
+// HTML2str html to str
 func HTML2str(html string) string {
 	re := regexp.MustCompile(`\<[\S\s]+?\>`)
 	html = re.ReplaceAllStringFunc(html, strings.ToLower)
@@ -90,7 +90,7 @@ func DateFormat(t time.Time) string {
 	return DateTimeFormat(t, "YYYY-MM-DD")
 }
 
-// DateTimeFormat return datetime string
+// IntDateTimeFormat return datetime string
 // format ="YYYY-MM-DD HH:mm:ss" or format ="YYYY-MM-DD HH:mm"
 func IntDateTimeFormat(val int64, format string) (ret string) {
 	if val < 1 {
