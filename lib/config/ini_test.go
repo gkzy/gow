@@ -17,15 +17,13 @@ func TestINI_GetKey(t *testing.T) {
 
 	b1, _ := GetBool("recover_panic")
 
+	p1 := GetString("app_mode")
+
 	fmt.Printf("s type=%T,s=%v \n", s, s)
 	fmt.Printf("s1 type=%T,s=%v \n", s1, s1)
 	fmt.Printf("i1 type=%T,i1=%v \n", i1, i1)
 	fmt.Printf("f1 type=%T,f1=%v \n", f1, f1)
-	fmt.Printf("b1, type=%T,b1,=%v \n", b1, b1)
-}
+	fmt.Printf("b1, type=%T,b1=%v \n", b1, b1)
+	fmt.Printf("p1, type=%T,p1=%v \n", p1, p1)
 
-//// TestINI_File 指定文件
-//func TestINI_File(t *testing.T) {
-//	InitLoad("prod.app.conf")
-//	fmt.Println(GetString("nsq::producer"))
-//}
+}

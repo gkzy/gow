@@ -46,21 +46,21 @@ func initConfig() {
 }
 
 // InitLoad 读取指定的配置文件
-//	  config.InitLoad("conf/my.ini")
+//	  config.InitLoad("my.ini")
 //	  config.GetString("key")
 func InitLoad(fileName string) {
-	err := ini.Load(fileName,true)
+	err := ini.Load(fileName)
 	if err != nil {
 		logy.Warn(fmt.Sprintf("failed to read configuration file：%v  err:%v", fileName, err.Error()))
 	}
 }
 
-// Reload
+// Reload reload ini
 func Reload() error {
 	return ini.ReLoad()
 }
 
-// WriteFile write an new file
+// WriteFile write a new file
 //	need filename and content
 func WriteFile(filename, content string) (n int, err error) {
 	return ini.WriteFile(filename, content)
@@ -96,7 +96,7 @@ func GetInt(key string) (int, error) {
 	return ini.SectionInt(getSplitSectionKey(key))
 }
 
-//DefaultInt DefaultInt
+//DefaultInt64 DefaultInt64
 func DefaultInt64(key string, def int64) int64 {
 	if v, err := GetInt64(key); err == nil {
 		return v
@@ -108,7 +108,7 @@ func GetInt64(key string) (int64, error) {
 	return ini.SectionInt64(getSplitSectionKey(key))
 }
 
-//DefaultInt DefaultInt
+//DefaultFloat return float64
 func DefaultFloat(key string, def float64) float64 {
 	if v, err := GetFloat(key); err == nil {
 		return v
@@ -116,16 +116,17 @@ func DefaultFloat(key string, def float64) float64 {
 	return def
 }
 
+// GetFloat return float64
 func GetFloat(key string) (float64, error) {
 	return ini.SectionFloat64(getSplitSectionKey(key))
 }
 
-//GetInt64
+//GetBool return bool
 func GetBool(key string) (bool, error) {
 	return ini.SectionBool(getSplitSectionKey(key)), nil
 }
 
-//DefaultBool DefaultBool
+//DefaultBool return bool
 func DefaultBool(key string, def bool) bool {
 	if v, err := GetBool(key); err == nil {
 		return v
@@ -133,7 +134,7 @@ func DefaultBool(key string, def bool) bool {
 	return def
 }
 
-// Keys 获取section下的所有keys
+// Keys return all keys
 func Keys(section string) []string {
 	keys := ini.GetKeys(section)
 	ss := make([]string, 0)
