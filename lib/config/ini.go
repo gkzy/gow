@@ -96,7 +96,7 @@ func GetInt(key string) (int, error) {
 	return ini.SectionInt(getSplitSectionKey(key))
 }
 
-//DefaultInt64 DefaultInt64
+// DefaultInt64 DefaultInt64
 func DefaultInt64(key string, def int64) int64 {
 	if v, err := GetInt64(key); err == nil {
 		return v
@@ -104,11 +104,12 @@ func DefaultInt64(key string, def int64) int64 {
 	return def
 }
 
+// GetInt64 return int64 and error
 func GetInt64(key string) (int64, error) {
 	return ini.SectionInt64(getSplitSectionKey(key))
 }
 
-//DefaultFloat return float64
+// DefaultFloat return float64
 func DefaultFloat(key string, def float64) float64 {
 	if v, err := GetFloat(key); err == nil {
 		return v
@@ -121,12 +122,12 @@ func GetFloat(key string) (float64, error) {
 	return ini.SectionFloat64(getSplitSectionKey(key))
 }
 
-//GetBool return bool
+// GetBool return bool
 func GetBool(key string) (bool, error) {
 	return ini.SectionBool(getSplitSectionKey(key)), nil
 }
 
-//DefaultBool return bool
+// DefaultBool return bool
 func DefaultBool(key string, def bool) bool {
 	if v, err := GetBool(key); err == nil {
 		return v

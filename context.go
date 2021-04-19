@@ -150,11 +150,12 @@ func (c *Context) Abort() {
 	c.index = abortIndex
 }
 
-// StopRun
+// StopRun stop run
 func (c *Context) StopRun() {
 	panic(stopRun)
 }
 
+// Error set error to c.Errors
 func (c *Context) Error(err error) *Error {
 	if err == nil {
 		panic("err is nil")
@@ -221,7 +222,7 @@ func (c *Context) ParamInt(key string) (int, error) {
 	return strconv.Atoi(v)
 }
 
-//  ParamInt64  return the value of the URL param
+// ParamInt64  return the value of the URL param
 func (c *Context) ParamInt64(key string) (int64, error) {
 	v := c.Param(key)
 	return strconv.ParseInt(v, 10, 64)
@@ -695,7 +696,7 @@ func (c *Context) HTML(name string, data ...interface{}) {
 }
 
 // ServerHTMLString write html string into response body
-func (c *Context) ServerHTMLString(code int,msg string){
+func (c *Context) ServerHTMLString(code int, msg string) {
 	if code < 0 {
 		code = http.StatusOK
 	}
@@ -703,6 +704,7 @@ func (c *Context) ServerHTMLString(code int,msg string){
 	c.Status(code)
 	c.Writer.Write([]byte(msg))
 }
+
 // ServerString write string into the response body
 func (c *Context) ServerString(code int, msg string) {
 	if code < 0 {
