@@ -54,7 +54,6 @@ func NewServerImage(url, path string, pdf *core.Report) (img *Image, err error) 
 		img = NewImageFromServer(tempFilePath, pdf)
 		return
 	}
-
 	resp, err := http.Get(url)
 	if err != nil {
 		return
