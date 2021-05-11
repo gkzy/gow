@@ -2,6 +2,7 @@
 html render
 like beego html template
 */
+
 package render
 
 import (
@@ -73,7 +74,7 @@ func (m HTMLRender) NewHTMLRender(dir string, funcMap template.FuncMap, delims D
 	return render
 }
 
-// Render
+// Render render implement
 func (m HTMLRender) Render(w http.ResponseWriter, name string, data interface{}) error {
 	if !m.AutoRender {
 		return nil
@@ -90,6 +91,7 @@ func (m HTMLRender) Render(w http.ResponseWriter, name string, data interface{})
 	return err
 }
 
+// WriteContentType implement
 func (m HTMLRender) WriteContentType(w http.ResponseWriter) {
 	writeContentType(w, htmlContentType)
 }

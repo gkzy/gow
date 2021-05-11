@@ -15,7 +15,7 @@ func IntDateTime(val int64) (ret string) {
 	return
 }
 
-//DateTimeFormat DateTimeFormat
+//IntDateTimeFormat DateTimeFormat
 func IntDateTimeFormat(val int64, format string) (ret string) {
 	if val < 1 {
 		return

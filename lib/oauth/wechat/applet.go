@@ -1,11 +1,11 @@
 package wechat
 
 import (
-	"errors"
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/imroc/req"
 	"regexp"
@@ -19,11 +19,12 @@ const (
 	codeToSessionUrl = "https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code"
 	//获得accessToken
 	getAccessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s"
+
 	//用户支付完成后，获取该用户的UnionId
 	getPaidUnionidUrl = "https://api.weixin.qq.com/wxa/getpaidunionid?access_token=%s&openid=%s"
 )
 
-//微信小程序
+//WxAppletSessionData 微信小程序
 type WxAppletSessionData struct {
 	Openid     string `json:"openid"`
 	SessionKey string `json:"session_key"`
@@ -55,7 +56,7 @@ type WxAppletUserInfo struct {
 	} `json:"watermark"`
 }
 
-//Client Client
+//AppletClient  Client
 type AppletClient struct {
 	AppId  string
 	Secret string
@@ -82,7 +83,7 @@ func (c *AppletClient) CodeToSession(code string) (sessionData *WxAppletSessionD
 	if err != nil {
 		return
 	}
-	fmt.Println("resp:::",resp)
+	fmt.Println("resp:::", resp)
 	sessionData = new(WxAppletSessionData)
 	err = resp.ToJSON(&sessionData)
 	if err != nil {
@@ -95,7 +96,7 @@ func (c *AppletClient) CodeToSession(code string) (sessionData *WxAppletSessionD
 	return
 }
 
-//GetAccessToken 获得accesstoken
+//GetAccessToken accessToken
 func (c *AppletClient) GetAccessToken() (accessTokenData *WxAppletAccessToken, err error) {
 	url := fmt.Sprintf(getAccessTokenUrl, c.AppId, c.Secret)
 	req.SetTimeout(10 * time.Second)
@@ -115,7 +116,7 @@ func (c *AppletClient) GetAccessToken() (accessTokenData *WxAppletAccessToken, e
 	return
 }
 
-func (c *AppletClient) Decrypt(sessionKey,encryptedData string, iv string) (*WxAppletUserInfo, error) {
+func (c *AppletClient) Decrypt(sessionKey, encryptedData string, iv string) (*WxAppletUserInfo, error) {
 	decrypted := new(WxAppletUserInfo)
 	sessionKey = strings.Replace(strings.TrimSpace(sessionKey), " ", "+", -1)
 	if len(sessionKey) != 24 {
@@ -160,7 +161,7 @@ func (c *AppletClient) Decrypt(sessionKey,encryptedData string, iv string) (*WxA
 	//if decrypted["watermark"].(map[string]interface{})["appid"] != c.AppId {
 	//	return nil, errors.New("appId is not match")
 	//}
-	if decrypted.Watermark.AppID != c.AppId{
+	if decrypted.Watermark.AppID != c.AppId {
 		return decrypted, errors.New("appId is not match")
 	}
 	return decrypted, nil

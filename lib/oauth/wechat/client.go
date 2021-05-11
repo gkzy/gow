@@ -8,6 +8,7 @@ client.SetApiKey("支付的apiKey")
 ....
 
 */
+
 package wechat
 
 import (
@@ -81,7 +82,7 @@ func (c *Client) CodeToAccessToken(code string) (accessData *AccessData, err err
 	return
 }
 
-//GetUserInfo 根据accessToken和openid获取用户的基本信息
+//GetWxUser 根据accessToken和openid获取用户的基本信息
 //第二步
 func (c *Client) GetWxUser(accessToken, openid string) (wxUser *WxUser, err error) {
 	if accessToken == "" || openid == "" {

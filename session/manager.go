@@ -100,7 +100,7 @@ func (m *Manager) End(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Extension
+// Extension ext func
 func (m *Manager) Extension(w http.ResponseWriter, r *http.Request) string {
 	ck, err := r.Cookie(m.cookieName)
 	if err != nil || ck == nil {

@@ -21,7 +21,7 @@ type routerPathInfo struct {
 	nType    nodeType
 }
 
-// RoutesInfo defines a routerPathInfo array.
+// RouterPath defines a routerPathInfo array.
 type RouterPath []routerPathInfo
 
 // getMuxValue Returns the handle registered with the given path (key). The values of
@@ -107,6 +107,8 @@ func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, b
 	if path != "/" && lastChar == "/" && !strings.Contains(path, ".") {
 		path = path[:len(path)-1]
 	}
+	//request path ignore  case
+	path = strings.ToLower(path)
 	for _, p := range rp {
 		regPath, keys := mathPath(p.Path)
 		if path == regPath {
