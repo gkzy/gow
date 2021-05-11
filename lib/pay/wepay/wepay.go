@@ -2,7 +2,6 @@
 供调用的封装程度更高的func
 sam
 参见测试代码
-
 */
 
 package wepay

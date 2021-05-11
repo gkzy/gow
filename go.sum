@@ -29,6 +29,7 @@ github.com/gkzy/gini v0.0.5 h1:Zi0bQ2kW5JIkb4mt4gyCi4R8p5YgI2tf6GCOd/xJBdw=
 github.com/gkzy/gini v0.0.5/go.mod h1:horxE6Rg5Z7lZyrb7cadPXkxTCONECtfYaRHtBcEtQM=
 github.com/gkzy/gini v0.0.6 h1:h77A9yPmAxiMPtL3iAuvmnKIJZaWpO/kP6tMRhyg70k=
 github.com/gkzy/gini v0.0.6/go.mod h1:horxE6Rg5Z7lZyrb7cadPXkxTCONECtfYaRHtBcEtQM=
+github.com/gkzy/gini v0.0.8/go.mod h1:horxE6Rg5Z7lZyrb7cadPXkxTCONECtfYaRHtBcEtQM=
 github.com/go-sql-driver/mysql v1.5.0 h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=
 github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/goji/httpauth v0.0.0-20160601135302-2da839ab0f4d/go.mod h1:nnjvkQ9ptGaCkuDUx6wNykzzlUixGxvkme+H/lnzb+A=
