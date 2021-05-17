@@ -40,6 +40,7 @@ type WxAppletAccessToken struct {
 	ErrMsg      string `json:"errmsg"`
 }
 
+//微信小程序用户基础信息
 type WxAppletUserInfo struct {
 	OpenID    string `json:"openId"`
 	UnionID   string `json:"unionId"`
@@ -51,6 +52,17 @@ type WxAppletUserInfo struct {
 	AvatarURL string `json:"avatarUrl"`
 	Language  string `json:"language"`
 	Watermark struct {
+		Timestamp int64  `json:"timestamp"`
+		AppID     string `json:"appid"`
+	} `json:"watermark"`
+}
+
+//微信小程序用户电话号码信息
+type WxAppletPhoneInfo struct {
+	PhoneNumber     string `json:"phoneNumber"`
+	PurePhoneNumber string `json:"purePhoneNumber"`
+	CountryCode     string `json:"countryCode"`
+	Watermark       struct {
 		Timestamp int64  `json:"timestamp"`
 		AppID     string `json:"appid"`
 	} `json:"watermark"`
@@ -118,59 +130,113 @@ func (c *AppletClient) GetAccessToken() (accessTokenData *WxAppletAccessToken, e
 
 func (c *AppletClient) Decrypt(sessionKey, encryptedData string, iv string) (*WxAppletUserInfo, error) {
 	decrypted := new(WxAppletUserInfo)
-	sessionKey = strings.Replace(strings.TrimSpace(sessionKey), " ", "+", -1)
-	if len(sessionKey) != 24 {
-		return decrypted, errors.New("sessionKey length is error")
-	}
-	aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
-	if err != nil {
-		return decrypted, errors.New("DecodeString err")
-	}
-	iv = strings.Replace(strings.TrimSpace(iv), " ", "+", -1)
-	if len(iv) != 24 {
-		return decrypted, errors.New("iv length is error")
-	}
-	aesIv, err := base64.StdEncoding.DecodeString(iv)
-	if err != nil {
-		return decrypted, errors.New("DecodeString err")
-	}
-	encryptedData = strings.Replace(strings.TrimSpace(encryptedData), " ", "+", -1)
-	aesCipherText, err := base64.StdEncoding.DecodeString(encryptedData)
-	if err != nil {
-		return decrypted, errors.New("DecodeString err")
-	}
-	aesPlantText := make([]byte, len(aesCipherText))
+	//sessionKey = strings.Replace(strings.TrimSpace(sessionKey), " ", "+", -1)
+	//if len(sessionKey) != 24 {
+	//	return decrypted, errors.New("sessionKey length is error")
+	//}
+	//aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
+	//if err != nil {
+	//	return decrypted, errors.New("DecodeString err")
+	//}
+	//iv = strings.Replace(strings.TrimSpace(iv), " ", "+", -1)
+	//if len(iv) != 24 {
+	//	return decrypted, errors.New("iv length is error")
+	//}
+	//aesIv, err := base64.StdEncoding.DecodeString(iv)
+	//if err != nil {
+	//	return decrypted, errors.New("DecodeString err")
+	//}
+	//encryptedData = strings.Replace(strings.TrimSpace(encryptedData), " ", "+", -1)
+	//aesCipherText, err := base64.StdEncoding.DecodeString(encryptedData)
+	//if err != nil {
+	//	return decrypted, errors.New("DecodeString err")
+	//}
+	//aesPlantText := make([]byte, len(aesCipherText))
+	//
+	//aesBlock, err := aes.NewCipher(aesKey)
+	//if err != nil {
+	//	return decrypted, errors.New("NewCipher err")
+	//}
+	//mode := cipher.NewCBCDecrypter(aesBlock, aesIv)
+	//mode.CryptBlocks(aesPlantText, aesCipherText)
+	//aesPlantText = PKCS7UnPadding(aesPlantText)
+	//
+	//re := regexp.MustCompile(`[^\{]*(\{.*\})[^\}]*`)
+	//aesPlantText = []byte(re.ReplaceAllString(string(aesPlantText), "$1"))
 
-	aesBlock, err := aes.NewCipher(aesKey)
-	if err != nil {
-		return decrypted, errors.New("NewCipher err")
+	aesPlantText,err := decrypt(sessionKey,encryptedData,iv)
+	if err != nil{
+		return decrypted,err
 	}
-
-	mode := cipher.NewCBCDecrypter(aesBlock, aesIv)
-	mode.CryptBlocks(aesPlantText, aesCipherText)
-	aesPlantText = PKCS7UnPadding(aesPlantText)
-
-	//decrypted := make(map[string]interface{})
-
-	re := regexp.MustCompile(`[^\{]*(\{.*\})[^\}]*`)
-	aesPlantText = []byte(re.ReplaceAllString(string(aesPlantText), "$1"))
 	err = json.Unmarshal(aesPlantText, &decrypted)
 	if err != nil {
-		return decrypted, errors.New("NewCipher err")
+		return decrypted, err
 	}
-	//if decrypted["watermark"].(map[string]interface{})["appid"] != c.AppId {
-	//	return nil, errors.New("appId is not match")
-	//}
 	if decrypted.Watermark.AppID != c.AppId {
 		return decrypted, errors.New("appId is not match")
 	}
 	return decrypted, nil
 }
 
+func (c *AppletClient) DecryptPhoneInfo(sessionKey, encryptedData string, iv string) (*WxAppletPhoneInfo, error) {
+	decrypted := new(WxAppletPhoneInfo)
+	aesPlantText,err := decrypt(sessionKey,encryptedData,iv)
+	if err != nil{
+		return decrypted,err
+	}
+	err = json.Unmarshal(aesPlantText, &decrypted)
+	if err != nil {
+		return decrypted, errors.New("NewCipher err")
+	}
+	if decrypted.Watermark.AppID != c.AppId {
+		return decrypted, errors.New("appId is not match")
+	}
+	return decrypted, nil
+}
+
+func decrypt(sessionKey, encryptedData string, iv string)([]byte,error){
+	sessionKey = strings.Replace(strings.TrimSpace(sessionKey), " ", "+", -1)
+	if len(sessionKey) != 24 {
+		return nil, errors.New("sessionKey length is error")
+	}
+	aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
+	if err != nil {
+		return nil, errors.New("DecodeString err")
+	}
+	iv = strings.Replace(strings.TrimSpace(iv), " ", "+", -1)
+	if len(iv) != 24 {
+		return nil, errors.New("iv length is error")
+	}
+	aesIv, err := base64.StdEncoding.DecodeString(iv)
+	if err != nil {
+		return nil, errors.New("DecodeString err")
+	}
+	encryptedData = strings.Replace(strings.TrimSpace(encryptedData), " ", "+", -1)
+	aesCipherText, err := base64.StdEncoding.DecodeString(encryptedData)
+	if err != nil {
+		return nil, errors.New("DecodeString err")
+	}
+	aesPlantText := make([]byte, len(aesCipherText))
+
+	aesBlock, err := aes.NewCipher(aesKey)
+	if err != nil {
+		return nil, errors.New("NewCipher err")
+	}
+	mode := cipher.NewCBCDecrypter(aesBlock, aesIv)
+	mode.CryptBlocks(aesPlantText, aesCipherText)
+	aesPlantText = PKCS7UnPadding(aesPlantText)
+
+	re := regexp.MustCompile(`[^\{]*(\{.*\})[^\}]*`)
+	aesPlantText = []byte(re.ReplaceAllString(string(aesPlantText), "$1"))
+
+	return aesPlantText,nil
+}
+
 // PKCS7UnPadding return unpadding []Byte plantText
 func PKCS7UnPadding(plantText []byte) []byte {
 	length := len(plantText)
 	if length > 0 {
+		fmt.Println("plantText : ",plantText)
 		unPadding := int(plantText[length-1])
 		return plantText[:(length - unPadding)]
 	}
