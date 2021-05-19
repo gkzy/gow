@@ -54,7 +54,6 @@ func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, b
 	path = strings.ReplaceAll(path, "//", "/")
 	//request path ignore  case
 	path = strings.ToLower(path)
-	debugPrint("path:%s", path)
 	for _, p := range rp {
 		regPath, keys := mathPath(p.Path)
 		if path == regPath {
@@ -112,7 +111,6 @@ func mathPath(path string) (regPath string, keys []string) {
 			// static /static/*filepath
 			if strings.Contains(n, "*filepath") {
 				n = strings.ReplaceAll(n, "*filepath", string(starRegexp))
-				debugPrint("filepath:%s", n)
 				replaceRegexp = starRegexp
 			}
 
