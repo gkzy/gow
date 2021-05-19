@@ -44,62 +44,6 @@ func (n *node) getMuxValue(path string, params *Params, unescape bool) (value no
 	return
 }
 
-var (
-	intRegexp  = []byte(`(\d+)`)
-	charRegexp = []byte(`(\w+)`)
-	starRegexp = []byte(`(.*)`)
-)
-
-func mathPath(path string) (regPath string, keys []string) {
-	var (
-		replaceRegexp []byte
-		nPath         string
-	)
-	nSplit := strings.Split(path, "/")
-	// like {uid} or {uid:int}
-	// replace {uid} to regexp
-	replaceRegexp = charRegexp
-	wildcardRegexp := regexp.MustCompile(`{\w+}`)
-	for _, n := range nSplit {
-		if strings.Contains(n, "{") || strings.Contains(n, "*") {
-			// math {uid:int}
-			if strings.Contains(n, ":int") {
-				n = strings.ReplaceAll(n, ":int", "")
-				replaceRegexp = intRegexp
-			}
-
-			// static /static/*filepath
-			if strings.Contains(n, "*filepath") {
-				n = strings.ReplaceAll(n, "*filepath", string(starRegexp))
-				replaceRegexp = starRegexp
-			}
-
-			// /*action
-			if strings.Contains(n, "*action") {
-				n = strings.ReplaceAll(n, "*action", string(starRegexp))
-				replaceRegexp = starRegexp
-			}
-			key := wildcardRegexp.FindAllString(n, -1)
-
-			keys = append(keys, key...)
-			nPath = string(wildcardRegexp.ReplaceAll([]byte(n), replaceRegexp))
-
-		} else {
-			nPath = n
-		}
-		regPath = regPath + nPath + "/"
-	}
-
-	//去掉group时可能产生的//
-	if strings.Contains(regPath, "//") {
-		regPath = strings.ReplaceAll(regPath, "//", "/")
-	}
-	if regPath != "/" {
-		regPath = regPath[:len(regPath)-1]
-	}
-	return regPath, keys
-}
-
 // getMatchPath return routerPathInfo
 // regexp match
 func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, bool) {
@@ -107,8 +51,10 @@ func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, b
 	if path != "/" && lastChar == "/" && !strings.Contains(path, ".") {
 		path = path[:len(path)-1]
 	}
+	path = strings.ReplaceAll(path, "//", "/")
 	//request path ignore  case
 	path = strings.ToLower(path)
+	debugPrint("path:%s", path)
 	for _, p := range rp {
 		regPath, keys := mathPath(p.Path)
 		if path == regPath {
@@ -137,6 +83,62 @@ func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, b
 		}
 	}
 	return nil, false
+}
+
+var (
+	intRegexp  = []byte(`(\d+)`)
+	charRegexp = []byte(`(\w+)`)
+	starRegexp = []byte(`(.*)`)
+)
+
+func mathPath(path string) (regPath string, keys []string) {
+	var (
+		replaceRegexp []byte
+		nPath         string
+	)
+	nSplit := strings.Split(path, "/")
+	// like {uid} or {uid:int}
+	// replace {uid} to regexp
+	replaceRegexp = charRegexp
+	wildcardRegexp := regexp.MustCompile(`{\w+}`)
+	for _, n := range nSplit {
+		if strings.Contains(n, "{") || strings.Contains(n, "*") {
+			// math {uid:int}
+			if strings.Contains(n, ":int") {
+				n = strings.ReplaceAll(n, ":int", "")
+				replaceRegexp = intRegexp
+			}
+
+			// static /static/*filepath
+			if strings.Contains(n, "*filepath") {
+				n = strings.ReplaceAll(n, "*filepath", string(starRegexp))
+				debugPrint("filepath:%s", n)
+				replaceRegexp = starRegexp
+			}
+
+			// /*action
+			if strings.Contains(n, "*action") {
+				n = strings.ReplaceAll(n, "*action", string(starRegexp))
+				replaceRegexp = starRegexp
+			}
+			key := wildcardRegexp.FindAllString(n, -1)
+			keys = append(keys, key...)
+			nPath = string(wildcardRegexp.ReplaceAll([]byte(n), replaceRegexp))
+
+		} else {
+			nPath = n
+		}
+		regPath = regPath + nPath + "/"
+	}
+
+	//去掉group时可能产生的//
+	if strings.Contains(regPath, "//") {
+		regPath = strings.ReplaceAll(regPath, "//", "/")
+	}
+	if regPath != "/" {
+		regPath = regPath[:len(regPath)-1]
+	}
+	return regPath, keys
 }
 
 func getNodeRouterPathMap(n *node) (rp RouterPath) {
