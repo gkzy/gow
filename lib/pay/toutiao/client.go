@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/clbanning/mxj"
+	//"github.com/clbanning/mxj"
 	"github.com/gkzy/gow/lib/logy"
 	"io/ioutil"
 	"net/http"
@@ -22,12 +22,12 @@ const (
 )
 
 type Client struct {
-	AppId string //传入的appID
-	//MchId     string //分配的mchID商户号
+	AppId     string //传入的appID
 	NotifyURL string //异步通知地址
 	OrderTime int    //订单有效分钟数
 	SALT      string //向小程序平台发送请求时的密钥
 	Token     string //小程序平台向开发者服务端发送请求时的密钥
+	Extra     string //开发者自定义字段，回调原样回传
 }
 
 //NewClient 一个新的配置信息
@@ -49,7 +49,7 @@ func (c *Client) CreateOrder(body, outTradeNo string, totalFee int64) (rslt *Ord
 	params.SetString("subject", body)
 	params.SetString("body", body)
 	params.SetInt64("valid_time", int64(c.OrderTime*60)) //订单过期时间(秒); 最小 15 分钟，最大两天
-	params.SetString("cp_extra", "ymzy")                 //开发者自定义字段，回调原样回传
+	params.SetString("cp_extra", c.Extra)                 //开发者自定义字段，回调原样回传
 	params.SetString("notify_url", c.NotifyURL)
 	params.SetInt64("disable_msg", int64(0)) //是否屏蔽担保支付的推送消息，1-屏蔽 0-非屏蔽，
 
@@ -74,20 +74,22 @@ func (c *Client) CreateOrder(body, outTradeNo string, totalFee int64) (rslt *Ord
 }
 
 //订单查询
-func (c *Client) QueryOrder(outTradeNo string) (data *QueryOrderResp, err error) {
+func (c *Client) QueryOrder(outTradeNo string) (rslt *QueryOrderRespData, err error) {
 	params := make(Params)
 	params.SetString("out_order_no", outTradeNo)
-
 	resp, err := c.post(queryOrderUrl, params)
 	if err != nil {
 		logy.Errorf("查订单出错:%v", err)
 		return
 	}
-	data = new(QueryOrderResp)
-	if err = json.Unmarshal([]byte(resp), &data); err != nil {
+	//fmt.Println("resp:",resp)
+	ret := new(QueryOrderResp)
+	err = json.Unmarshal([]byte(resp), &ret)
+	if err != nil {
 		logy.Errorf("解析查询订单响应参数出错:%v", err)
 		return
 	}
+	rslt = ret.PaymentInfo
 	return
 }
 
@@ -99,10 +101,7 @@ func (c *Client) Notify(req *http.Request) (msgData *NotifyMsgData, ret *NotifyR
 	}
 	// 写回 body 内容
 	req.Body = ioutil.NopCloser(bytes.NewReader(content))
-
-	//TODO
-	params := StringToMap(string(content))
-	fmt.Println("返回的参数:", params)
+	params := StringToMap(content)
 	var returntype string
 	if params.ContainsKey("type") {
 		returntype = params.GetString("type")
@@ -114,10 +113,8 @@ func (c *Client) Notify(req *http.Request) (msgData *NotifyMsgData, ret *NotifyR
 		//验证签名
 		if c.ValidSign(params) {
 			msg := params.GetString("msg")
-			fmt.Println("msgData---->>>>>.", msg)
 			msgData = new(NotifyMsgData)
 			json.Unmarshal([]byte(msg), &msgData)
-
 			ret = new(NotifyReturn)
 			ret.ErrNo = 0
 			ret.ErrTip = "success"
@@ -155,7 +152,7 @@ func (c *Client) post(url string, params Params) (string, error) {
 func (c *Client) fullRequestParams(params Params) Params {
 	params["app_id"] = c.AppId
 	signstr := c.reqsign(params)
-	fmt.Println("得到的签名字符串：", signstr)
+	//fmt.Println("得到的签名字符串：", signstr)
 	params["sign"] = signstr
 	return params
 }
@@ -172,8 +169,7 @@ func (c *Client) reqsign(params Params) string {
 		}
 		values = append(values, fmt.Sprintf("%v", v))
 	}
-	fmt.Println("签名前value:", values)
-
+	//fmt.Println("签名前value:", values)
 	sort.Strings(values)
 	h := md5.New()
 	h.Write([]byte(strings.Join(values, "&")))
@@ -193,8 +189,7 @@ func (c *Client) respsign(params Params) string {
 		}
 		values = append(values, fmt.Sprintf("%v", v))
 	}
-	fmt.Println("签名前value:", values)
-
+	//fmt.Println("签名前value:", values)
 	sort.Strings(values)
 	h := sha1.New()
 	h.Write([]byte(strings.Join(values, "")))
@@ -203,18 +198,13 @@ func (c *Client) respsign(params Params) string {
 	return _signature
 }
 
-// MapToXML MapToXML
-// 使用mxj第三方库，转换map2xml
 func MapToString(params Params) string {
-	data,_ := json.Marshal(params)
+	data, _ := json.Marshal(params)
 	return string(data)
 }
 
-//XMLToMap XMLToMap
-// 使用mxj第三方库，转换xml2map
-func StringToMap(xmlStr string) Params {
-	mv, _ := mxj.NewMapXml([]byte(xmlStr))
-	fmt.Println("mv--->>>>", mv)
-	params, _ := mv["xml"].(map[string]interface{})
-	return params
+func StringToMap(content []byte) Params {
+	param := make(Params)
+	json.Unmarshal(content, &param)
+	return param
 }

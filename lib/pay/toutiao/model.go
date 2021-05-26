@@ -14,6 +14,14 @@ type OrderInfo struct {
 
 //查询订单应答参数
 type QueryOrderResp struct {
+	ErrNo       int64               `json:"err_no"`
+	ErrTips     string              `json:"err_tips"`
+	OutOrderNo  string              `json:"out_order_no"`
+	OrderId     string              `json:"order_id"`
+	PaymentInfo *QueryOrderRespData `json:"payment_info"`
+}
+
+type QueryOrderRespData struct {
 	TotalFee         int64  `json:"total_fee"`
 	OrderStatus      string `json:"order_status"`       //PROCESSING-处理中|SUCCESS-成功|FAIL-失败|TIMEOUT-超时
 	PayTime          string `json:"pay_time"`           //支付时间
