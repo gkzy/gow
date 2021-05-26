@@ -1,6 +1,6 @@
 package hms
 
-//华为accesstoken应答参数
+// QuickAppAccessToken 华为accesstoken应答参数
 type QuickAppAccessToken struct {
 	AccessToken    string `json:"access_token"`
 	ExpiresIn      int    `json:"expires_in"`

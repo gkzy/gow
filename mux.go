@@ -44,6 +44,46 @@ func (n *node) getMuxValue(path string, params *Params, unescape bool) (value no
 	return
 }
 
+// getMatchPath return routerPathInfo
+// regexp match
+func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, bool) {
+	lastChar := path[len(path)-1:]
+	if path != "/" && lastChar == "/" && !strings.Contains(path, ".") {
+		path = path[:len(path)-1]
+	}
+	path = strings.ReplaceAll(path, "//", "/")
+	//request path ignore  case
+	path = strings.ToLower(path)
+	for _, p := range rp {
+		regPath, keys := mathPath(p.Path)
+		if path == regPath {
+			return &p, true
+		} else {
+			// all reg match
+			ok, _ := regexp.MatchString("^"+regPath+"$", path)
+			if ok {
+				valueRegexp := regexp.MustCompile(regPath)
+				if unescape {
+					if v, err := url.QueryUnescape(path); err == nil {
+						path = v
+					}
+				}
+				values := valueRegexp.FindStringSubmatch(path)
+				params := new(Params)
+				for i, k := range keys {
+					*params = append(*params, Param{
+						Key:   strings.ReplaceAll(strings.ReplaceAll(k, "{", ""), "}", ""),
+						Value: values[i+1],
+					})
+				}
+				p.params = params
+				return &p, ok
+			}
+		}
+	}
+	return nil, false
+}
+
 var (
 	intRegexp  = []byte(`(\d+)`)
 	charRegexp = []byte(`(\w+)`)
@@ -80,7 +120,6 @@ func mathPath(path string) (regPath string, keys []string) {
 				replaceRegexp = starRegexp
 			}
 			key := wildcardRegexp.FindAllString(n, -1)
-
 			keys = append(keys, key...)
 			nPath = string(wildcardRegexp.ReplaceAll([]byte(n), replaceRegexp))
 
@@ -98,45 +137,6 @@ func mathPath(path string) (regPath string, keys []string) {
 		regPath = regPath[:len(regPath)-1]
 	}
 	return regPath, keys
-}
-
-// getMatchPath return routerPathInfo
-// regexp match
-func getMatchPath(path string, rp RouterPath, unescape bool) (*routerPathInfo, bool) {
-	lastChar := path[len(path)-1:]
-	if path != "/" && lastChar == "/" && !strings.Contains(path, ".") {
-		path = path[:len(path)-1]
-	}
-	//request path ignore  case
-	path = strings.ToLower(path)
-	for _, p := range rp {
-		regPath, keys := mathPath(p.Path)
-		if path == regPath {
-			return &p, true
-		} else {
-			// all reg match
-			ok, _ := regexp.MatchString("^"+regPath+"$", path)
-			if ok {
-				valueRegexp := regexp.MustCompile(regPath)
-				if unescape {
-					if v, err := url.QueryUnescape(path); err == nil {
-						path = v
-					}
-				}
-				values := valueRegexp.FindStringSubmatch(path)
-				params := new(Params)
-				for i, k := range keys {
-					*params = append(*params, Param{
-						Key:   strings.ReplaceAll(strings.ReplaceAll(k, "{", ""), "}", ""),
-						Value: values[i+1],
-					})
-				}
-				p.params = params
-				return &p, ok
-			}
-		}
-	}
-	return nil, false
 }
 
 func getNodeRouterPathMap(n *node) (rp RouterPath) {
