@@ -66,6 +66,13 @@ func WriteFile(filename, content string) (n int, err error) {
 	return ini.WriteFile(filename, content)
 }
 
+// WriteContent  write file
+//	need content
+func WriteContent(content string) (n int, err error) {
+	filename := ini.GetFileName()
+	return WriteFile(filename, content)
+}
+
 // DefaultString get default string
 //	 config.DefaultString("prov","四川")
 func DefaultString(key, def string) string {
