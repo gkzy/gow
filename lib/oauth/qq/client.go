@@ -2,13 +2,16 @@
 qq oauth 2 登录方法
 sam
 2020-10-22
- */
+*/
 
 package qq
 
 import (
 	"fmt"
 	"github.com/imroc/req"
+	"net"
+	"net/http"
+	"net/http/cookiejar"
 	"time"
 )
 
@@ -71,11 +74,8 @@ func (m *Client) GetAccessTokenByCode(code, redirectUrl string) (accessToken str
 func (m *Client) GetOpenIdAndUnionIdByAccessToken(accessToken string) (openId string, unionId string, err error) {
 	url := fmt.Sprintf(openIdUrl, accessToken)
 	req.SetTimeout(5 * time.Second)
+	//req.SetClient(newClient())
 	resp, err := req.Get(url)
-	if err != nil {
-		err = fmt.Errorf("[QQ] 通讯错误：%v", err)
-		return
-	}
 
 	openIdData := new(OpenIdData)
 	resp.ToJSON(&openIdData)
@@ -113,4 +113,26 @@ func (m *Client) GetQQUser(openId, accessToken string) (user *QUser, err error) 
 	}
 
 	return
+}
+
+func newClient() *http.Client {
+	jar, _ := cookiejar.New(nil)
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		MaxIdleConnsPerHost:   100,
+	}
+	return &http.Client{
+		Jar:       jar,
+		Transport: transport,
+		Timeout:   5 * time.Minute,
+	}
 }

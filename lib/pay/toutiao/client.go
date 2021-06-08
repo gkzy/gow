@@ -31,13 +31,14 @@ type Client struct {
 }
 
 //NewClient 一个新的配置信息
-func NewClient(appId, SALT, token string, notifyUrl string, orderTime int) *Client {
+func NewClient(appId, SALT, token, extra string, notifyUrl string, orderTime int) *Client {
 	return &Client{
 		AppId:     appId,
 		NotifyURL: notifyUrl,
 		OrderTime: orderTime,
 		SALT:      SALT,
 		Token:     token,
+		Extra:     extra,
 	}
 }
 
@@ -49,7 +50,9 @@ func (c *Client) CreateOrder(body, outTradeNo string, totalFee int64) (rslt *Ord
 	params.SetString("subject", body)
 	params.SetString("body", body)
 	params.SetInt64("valid_time", int64(c.OrderTime*60)) //订单过期时间(秒); 最小 15 分钟，最大两天
-	params.SetString("cp_extra", c.Extra)                 //开发者自定义字段，回调原样回传
+	if c.Extra != ""{
+		params.SetString("cp_extra", c.Extra)                //开发者自定义字段，回调原样回传
+	}
 	params.SetString("notify_url", c.NotifyURL)
 	params.SetInt64("disable_msg", int64(0)) //是否屏蔽担保支付的推送消息，1-屏蔽 0-非屏蔽，
 
