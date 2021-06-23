@@ -76,7 +76,10 @@ func (m *Client) GetOpenIdAndUnionIdByAccessToken(accessToken string) (openId st
 	req.SetTimeout(5 * time.Second)
 	//req.SetClient(newClient())
 	resp, err := req.Get(url)
-
+	if err != nil {
+		err = fmt.Errorf("[QQ] 通讯错误：%v", err)
+		return
+	}
 	openIdData := new(OpenIdData)
 	resp.ToJSON(&openIdData)
 
