@@ -1,15 +1,11 @@
 package wechat
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gkzy/gow/lib/util"
 	"github.com/imroc/req"
-	"regexp"
-	"strings"
 	"time"
 )
 
@@ -95,7 +91,6 @@ func (c *AppletClient) CodeToSession(code string) (sessionData *WxAppletSessionD
 	if err != nil {
 		return
 	}
-	fmt.Println("resp:::", resp)
 	sessionData = new(WxAppletSessionData)
 	err = resp.ToJSON(&sessionData)
 	if err != nil {
@@ -130,41 +125,7 @@ func (c *AppletClient) GetAccessToken() (accessTokenData *WxAppletAccessToken, e
 
 func (c *AppletClient) Decrypt(sessionKey, encryptedData string, iv string) (*WxAppletUserInfo, error) {
 	decrypted := new(WxAppletUserInfo)
-	//sessionKey = strings.Replace(strings.TrimSpace(sessionKey), " ", "+", -1)
-	//if len(sessionKey) != 24 {
-	//	return decrypted, errors.New("sessionKey length is error")
-	//}
-	//aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
-	//if err != nil {
-	//	return decrypted, errors.New("DecodeString err")
-	//}
-	//iv = strings.Replace(strings.TrimSpace(iv), " ", "+", -1)
-	//if len(iv) != 24 {
-	//	return decrypted, errors.New("iv length is error")
-	//}
-	//aesIv, err := base64.StdEncoding.DecodeString(iv)
-	//if err != nil {
-	//	return decrypted, errors.New("DecodeString err")
-	//}
-	//encryptedData = strings.Replace(strings.TrimSpace(encryptedData), " ", "+", -1)
-	//aesCipherText, err := base64.StdEncoding.DecodeString(encryptedData)
-	//if err != nil {
-	//	return decrypted, errors.New("DecodeString err")
-	//}
-	//aesPlantText := make([]byte, len(aesCipherText))
-	//
-	//aesBlock, err := aes.NewCipher(aesKey)
-	//if err != nil {
-	//	return decrypted, errors.New("NewCipher err")
-	//}
-	//mode := cipher.NewCBCDecrypter(aesBlock, aesIv)
-	//mode.CryptBlocks(aesPlantText, aesCipherText)
-	//aesPlantText = PKCS7UnPadding(aesPlantText)
-	//
-	//re := regexp.MustCompile(`[^\{]*(\{.*\})[^\}]*`)
-	//aesPlantText = []byte(re.ReplaceAllString(string(aesPlantText), "$1"))
-
-	aesPlantText,err := decrypt(sessionKey,encryptedData,iv)
+	aesPlantText,err := util.AppletDecrypt(sessionKey,encryptedData,iv)
 	if err != nil{
 		return decrypted,err
 	}
@@ -180,7 +141,7 @@ func (c *AppletClient) Decrypt(sessionKey, encryptedData string, iv string) (*Wx
 
 func (c *AppletClient) DecryptPhoneInfo(sessionKey, encryptedData string, iv string) (*WxAppletPhoneInfo, error) {
 	decrypted := new(WxAppletPhoneInfo)
-	aesPlantText,err := decrypt(sessionKey,encryptedData,iv)
+	aesPlantText,err := util.AppletDecrypt(sessionKey,encryptedData,iv)
 	if err != nil{
 		return decrypted,err
 	}
@@ -194,51 +155,3 @@ func (c *AppletClient) DecryptPhoneInfo(sessionKey, encryptedData string, iv str
 	return decrypted, nil
 }
 
-func decrypt(sessionKey, encryptedData string, iv string)([]byte,error){
-	sessionKey = strings.Replace(strings.TrimSpace(sessionKey), " ", "+", -1)
-	if len(sessionKey) != 24 {
-		return nil, errors.New("sessionKey length is error")
-	}
-	aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
-	if err != nil {
-		return nil, errors.New("DecodeString err")
-	}
-	iv = strings.Replace(strings.TrimSpace(iv), " ", "+", -1)
-	if len(iv) != 24 {
-		return nil, errors.New("iv length is error")
-	}
-	aesIv, err := base64.StdEncoding.DecodeString(iv)
-	if err != nil {
-		return nil, errors.New("DecodeString err")
-	}
-	encryptedData = strings.Replace(strings.TrimSpace(encryptedData), " ", "+", -1)
-	aesCipherText, err := base64.StdEncoding.DecodeString(encryptedData)
-	if err != nil {
-		return nil, errors.New("DecodeString err")
-	}
-	aesPlantText := make([]byte, len(aesCipherText))
-
-	aesBlock, err := aes.NewCipher(aesKey)
-	if err != nil {
-		return nil, errors.New("NewCipher err")
-	}
-	mode := cipher.NewCBCDecrypter(aesBlock, aesIv)
-	mode.CryptBlocks(aesPlantText, aesCipherText)
-	aesPlantText = PKCS7UnPadding(aesPlantText)
-
-	re := regexp.MustCompile(`[^\{]*(\{.*\})[^\}]*`)
-	aesPlantText = []byte(re.ReplaceAllString(string(aesPlantText), "$1"))
-
-	return aesPlantText,nil
-}
-
-// PKCS7UnPadding return unpadding []Byte plantText
-func PKCS7UnPadding(plantText []byte) []byte {
-	length := len(plantText)
-	if length > 0 {
-		fmt.Println("plantText : ",plantText)
-		unPadding := int(plantText[length-1])
-		return plantText[:(length - unPadding)]
-	}
-	return plantText
-}

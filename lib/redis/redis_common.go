@@ -149,6 +149,21 @@ func (m *RDSCommon) Incr(key string) (num int64, err error) {
 	return redis.Int64(rc.Do("Incr", key))
 }
 
+func (m *RDSCommon) Limit(key string,seconds,timestamp int64) (num int64, err error) {
+	rc := m.client.Get()
+	defer rc.Close()
+	//事务的方式
+	rc.Do("MULTI")
+	num,err = redis.Int64(rc.Do("Incr", key))
+	if seconds > 0 {
+		rc.Do("EXPIRE", redis.Args{}.Add(key).Add(seconds)...)
+	}else if timestamp > 0 {
+		rc.Do("EXPIREAT", redis.Args{}.Add(key).Add(timestamp)...)
+	}
+	rc.Do("EXEC")
+	return
+}
+
 /************************************/
 /********     REDIS hash 	 ********/
 /************************************/

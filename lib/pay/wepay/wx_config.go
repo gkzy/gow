@@ -4,14 +4,15 @@ import "io/ioutil"
 
 //WxConfig WxConfig
 type WxConfig struct {
-	AppId     string //传入的appID
-	MchId     string //分配的mchID
-	APIKey    string //分配的apiKey
-	ServerIP  string //服务器IP
-	certData  []byte //证书
-	isSandbox bool   //是否沙箱
-	NotifyURL string //异步通知地址
-	OrderTime int    //订单有效分钟数
+	AppId           string //传入的appID
+	MchId           string //分配的mchID
+	APIKey          string //分配的apiKey
+	ServerIP        string //服务器IP
+	certData        []byte //证书
+	isSandbox       bool   //是否沙箱
+	NotifyURL       string //异步通知地址
+	OrderTime       int    //订单有效分钟数
+	RefundNotifyUrl string //订单退款异步通知地址
 }
 
 //NewWxConfig 一个新的配置信息
@@ -36,4 +37,8 @@ func (m *WxConfig) SetCertData(certPath string) (err error) {
 	}
 	m.certData = certData
 	return
+}
+
+func (m *WxConfig) SetRefundNotifyUrl(url string){
+	m.RefundNotifyUrl = url
 }

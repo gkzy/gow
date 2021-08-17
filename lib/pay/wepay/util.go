@@ -19,16 +19,26 @@ var (
 	TradeNumStr = "WX"
 )
 
+const xmlkey = "xml"
+
 //XMLToMap XMLToMap
 // 使用mxj第三方库，转换xml2map
-func XMLToMap(xmlStr string) Params {
+func XMLToMap(xmlStr,key string) Params {
+	var params map[string]interface{}
 	mv, _ := mxj.NewMapXml([]byte(xmlStr))
-	params, _ := mv["xml"].(map[string]interface{})
+	if key == ""{
+		//默认的key为xml
+		params, _ = mv[xmlkey].(map[string]interface{})
+	}else{
+		params, _ = mv[key].(map[string]interface{})
+	}
 	// if !ok {
 	// 	fmt.Println("error:", ok)
 	// }
 	return params
 }
+
+
 
 // MapToXML MapToXML
 // 使用mxj第三方库，转换map2xml
