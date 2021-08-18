@@ -38,6 +38,7 @@ func GenerateClientSecret(secret, teamID, clientID, keyID string) (string, error
 		Subject:   clientID,
 	}
 
+
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
 	token.Header["key"] = keyID
 

@@ -281,7 +281,7 @@ func LoggerWithConfig(conf LoggerConfig) HandlerFunc {
 func Logger() HandlerFunc {
 	out := DefaultWriter
 
-	notlogged := []string{}
+	var notlogged []string
 
 	isTerm := true
 
